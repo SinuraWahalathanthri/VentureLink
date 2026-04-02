@@ -1368,6 +1368,20 @@
     </style>
   </head>
   <body>
+    <script>
+      // TODO: Fill these with your real Firebase config.
+      window.__APP_CONFIG__ = window.__APP_CONFIG__ || {
+        firebase: {
+          apiKey: "AIzaSyAYp96VglG4XroleSiPhmBNxD1TsO66XvE",
+          authDomain: "venturelink-8374b.firebaseapp.com",
+          projectId: "venturelink-8374b",
+          storageBucket: "venturelink-8374b.firebasestorage.app",
+          messagingSenderId: "1007831383423",
+          appId: "1:1007831383423:web:369ee42965552687cc6e4a",
+          measurementId: "G-SXSXS1CPZK",
+        },
+      };
+    </script>
     <div class="login-screen" id="loginScreen">
       <div class="login-card">
         <div class="login-logo">
@@ -1379,13 +1393,11 @@
             </svg>
           </div>
           <div>
-            <div class="login-title">FundBridge</div>
+            <div class="login-title">VentureLink</div>
             <div class="login-sub">Admin Portal</div>
           </div>
         </div>
-        <div class="login-error" id="loginError">
-          Invalid credentials. Try admin / admin123
-        </div>
+        <div class="login-error" id="loginError">Invalid credentials.</div>
         <div class="form-field">
           <label class="form-label">Username</label>
           <input
@@ -1432,7 +1444,7 @@
             margin-top: 16px;
           "
         >
-          Hint: admin / admin123
+          Use your Firebase admin user credentials.
         </p>
       </div>
     </div>
@@ -1448,7 +1460,7 @@
             </svg>
           </div>
           <div>
-            <div class="logo-text">FundBridge</div>
+            <div class="logo-text">VentureLink</div>
             <div class="logo-sub">Admin</div>
           </div>
         </div>
@@ -2252,7 +2264,7 @@
     <div class="toast" id="toast"></div>
 
     <script>
-      const SMES = [
+      var SMES = [
         {
           id: 1,
           name: "GreenLeaf Organics",
@@ -2591,7 +2603,7 @@
       ];
 
       let currentFilter = "all";
-      let currentSMEId = null;
+      var currentSMEId = null;
 
       function doLogin() {
         const u = document.getElementById("loginUser").value;
@@ -2680,7 +2692,7 @@
         t.innerHTML = SMES.slice(0, 5)
           .map(
             (s) => `
-    <tr onclick="openDetail(${s.id})">
+    <tr onclick="openDetail('${s.id}')">
       <td><div class="td-name">${s.name}</div><div class="td-sub">${s.owner}</div></td>
       <td>${s.category}</td>
       <td>
@@ -2732,7 +2744,7 @@
         t.innerHTML = data
           .map(
             (s) => `
-    <tr onclick="openDetail(${s.id})">
+    <tr onclick="openDetail('${s.id}')">
       <td><div class="td-name">${s.name}</div><div class="td-sub">${s.category}</div></td>
       <td><div class="td-name">${s.owner}</div><div class="td-sub">${s.email}</div></td>
       <td>${s.category}</td>
@@ -2745,7 +2757,7 @@
       </td>
       <td>${statusBadge(s.status)}</td>
       <td style="color:var(--gray-400);font-size:12px">${s.submitted}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail(${s.id})">View &rarr;</button></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail('${s.id}')">View &rarr;</button></td>
     </tr>`,
           )
           .join("");
@@ -2755,7 +2767,7 @@
         const t = document.getElementById("fraudTable");
         t.innerHTML = SMES.map(
           (s) => `
-    <tr onclick="openDetail(${s.id})">
+    <tr onclick="openDetail('${s.id}')">
       <td><div class="td-name">${s.name}</div><div class="td-sub">${s.owner}</div></td>
       <td>
         <div style="display:flex;align-items:center;gap:8px">
@@ -2773,7 +2785,7 @@
       <td>${riskBadge(s.risk)}</td>
       <td style="font-size:12.5px;color:var(--gray-600);max-width:200px">${s.flags[0].text.substring(0, 55)}...</td>
       <td>${verdictBadge(s.aiVerdict)}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openDetail(${s.id})">Review</button></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openDetail('${s.id}')">Review</button></td>
     </tr>`,
         ).join("");
       }
@@ -3080,6 +3092,197 @@
           showToast("New SME registration: TechNest Solutions", "");
         }, 2000);
       }
+    </script>
+    <script type="module">
+      import {
+        auth,
+        db,
+        authApi,
+        firestore,
+      } from "../shared/firebaseClient.js";
+
+      const { doc, getDoc, updateDoc, collection, query, orderBy, onSnapshot } =
+        firestore;
+      const { onAuthStateChanged, signInWithEmailAndPassword, signOut } =
+        authApi;
+
+      async function isAdmin(user) {
+        // Simple allowlist check: create Firestore doc `admins/{uid}` for allowed admins.
+        const ref = doc(db, "admins", user.uid);
+        const snap = await getDoc(ref);
+        return snap.exists();
+      }
+
+      function mapCampaignToSmeRow(id, x) {
+        const status = x.status || "pending";
+        const created =
+          x.createdAt?.toDate?.() instanceof Date ? x.createdAt.toDate() : null;
+        const submitted = created
+          ? created.toISOString().slice(0, 10)
+          : x.createdAtText || "—";
+
+        // Very simple placeholder risk score (you can replace with real scoring).
+        const risk =
+          status === "rejected" ? 85 : status === "pending" ? 65 : 30;
+
+        return {
+          id,
+          name: x.businessName || "Untitled",
+          owner: x.ownerName || "—",
+          email: x.ownerEmail || "—",
+          phone: x.ownerPhone || "—",
+          category: x.industry || "—",
+          goal: Number(x.fundingGoalLkr || 0),
+          raised: 0,
+          risk,
+          status,
+          submitted,
+          desc: x.description || "—",
+          regNum: x.regNo || "—",
+          address: [x.city, x.district].filter(Boolean).join(", ") || "—",
+          founded: x.yearEstablished ? String(x.yearEstablished) : "—",
+          employees: x.financials?.employees
+            ? String(x.financials.employees)
+            : "—",
+          docs: [
+            x.documents?.pitchDeckUrl ? "pitch_deck" : null,
+            x.documents?.financialsUrl ? "financials" : null,
+            x.documents?.registrationUrl ? "business_reg" : null,
+            x.documents?.bankStatementUrl ? "bank_statement" : null,
+          ].filter(Boolean),
+          flags: [
+            {
+              type: status === "rejected" ? "danger" : "ok",
+              text:
+                status === "rejected"
+                  ? "Rejected by admin"
+                  : "Submitted via owner portal",
+            },
+          ],
+          aiVerdict:
+            status === "rejected"
+              ? "HIGH RISK"
+              : status === "pending"
+                ? "MODERATE"
+                : "CLEAR",
+        };
+      }
+
+      function setLoginError(msg) {
+        const el = document.getElementById("loginError");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+      }
+
+      // Override login/logout to Firebase Auth.
+      window.doLogin = async function doLogin() {
+        try {
+          document.getElementById("loginError")?.classList.remove("show");
+          const email = (
+            document.getElementById("loginUser")?.value || ""
+          ).trim();
+          const pass = document.getElementById("loginPass")?.value || "";
+          if (!email || !pass) {
+            setLoginError("Enter email and password.");
+            return;
+          }
+          const cred = await signInWithEmailAndPassword(auth, email, pass);
+          const ok = await isAdmin(cred.user);
+          if (!ok) {
+            await signOut(auth);
+            setLoginError("Not authorized as admin.");
+            return;
+          }
+          document.getElementById("loginScreen")?.classList.add("hidden");
+        } catch (e) {
+          console.error(e);
+          setLoginError("Invalid credentials.");
+        }
+      };
+
+      window.logout = async function logout() {
+        try {
+          await signOut(auth);
+        } finally {
+          document.getElementById("loginScreen")?.classList.remove("hidden");
+          const p = document.getElementById("loginPass");
+          if (p) p.value = "";
+        }
+      };
+
+      // Approve/reject write back to Firestore.
+      window.approveCurrentSME = async function approveCurrentSME() {
+        try {
+          if (!currentSMEId) return;
+          const note =
+            document.getElementById("feedbackNote")?.value ||
+            "Approved by admin.";
+          await updateDoc(doc(db, "campaigns", currentSMEId), {
+            status: "approved",
+            adminNote: note,
+            updatedAt: firestore.serverTimestamp(),
+          });
+          showToast("Approved ✓", "success");
+          closeDetail();
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to approve", "error");
+        }
+      };
+
+      window.rejectCurrentSME = async function rejectCurrentSME() {
+        try {
+          if (!currentSMEId) return;
+          const note =
+            document.getElementById("feedbackNote")?.value ||
+            "Rejected by admin.";
+          await updateDoc(doc(db, "campaigns", currentSMEId), {
+            status: "rejected",
+            adminNote: note,
+            updatedAt: firestore.serverTimestamp(),
+          });
+          showToast("Rejected", "success");
+          closeDetail();
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to reject", "error");
+        }
+      };
+
+      // Live campaigns feed.
+      let unsub = null;
+      onAuthStateChanged(auth, async (user) => {
+        if (unsub) unsub();
+        if (!user) return;
+        const ok = await isAdmin(user);
+        if (!ok) {
+          await signOut(auth);
+          document.getElementById("loginScreen")?.classList.remove("hidden");
+          setLoginError("Not authorized as admin.");
+          return;
+        }
+        const q = query(
+          collection(db, "campaigns"),
+          orderBy("createdAt", "desc"),
+        );
+        unsub = onSnapshot(
+          q,
+          (snap) => {
+            SMES.length = 0;
+            SMES.push(
+              ...snap.docs.map((d) =>
+                mapCampaignToSmeRow(d.id, d.data() || {}),
+              ),
+            );
+            refreshAllTables();
+          },
+          (err) => {
+            console.error(err);
+            showToast("Failed to load submissions", "error");
+          },
+        );
+      });
     </script>
   </body>
 </html>
