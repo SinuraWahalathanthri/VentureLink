@@ -34,6 +34,23 @@ const INDUSTRY_COLORS = {
 let SME_DATA = [];
 let currentSME = null;
 let currentCalcData = null;
+let currentCommitment = null;
+
+// ── AUTHENTICATION STATE ──
+let currentUser = null;
+let isLoginMode = false;
+
+firebase.auth().onAuthStateChanged(function(user) {
+  currentUser = user;
+  var navAuthBtns = document.getElementById('navAuthBtns');
+  if (navAuthBtns) {
+    if (user) {
+      navAuthBtns.innerHTML = '<a href="/src/investor/dashboard.html" class="btn btn-outline btn-sm">My Portfolio</a><button class="btn btn-primary btn-sm" onclick="signOut()">Sign Out</button>';
+    } else {
+      navAuthBtns.innerHTML = '<button class="btn btn-outline btn-sm" onclick="openAuthModal()">Log In / Sign Up</button><button class="btn btn-primary btn-sm">List Your SME</button>';
+    }
+  }
+});
 
 // ── HELPERS ──
 function fmtLKR(n) {
@@ -302,23 +319,121 @@ function goHome() {
 }
 
 // ── MODAL ──
-function openModal() {
+async function openModal() {
+  if (!currentUser) {
+    showToast('⚠️ Please log in or sign up to invest.', true);
+    openAuthModal();
+    return;
+  }
+  
+  currentCommitment = null;
+  document.getElementById('commitAmount').value = '';
+  document.getElementById('commitMessage').value = '';
+  document.getElementById('commitSubmitBtn').textContent = 'Submit Expression of Interest';
+  document.querySelector('#modalOverlay .modal-title').textContent = 'Commit to Invest';
+
+  try {
+    var snapshot = await db.collection('campaigns').doc(currentSME.id).collection('commitments')
+      .where('investorUid', '==', currentUser.uid)
+      .limit(1)
+      .get();
+    
+    if (!snapshot.empty) {
+      let existingDoc = snapshot.docs[0];
+      currentCommitment = existingDoc;
+      let data = existingDoc.data();
+      document.getElementById('commitAmount').value = data.investmentAmountLkr;
+      document.getElementById('commitMessage').value = data.message || '';
+      document.getElementById('commitSubmitBtn').textContent = 'Update Commitment';
+      document.querySelector('#modalOverlay .modal-title').textContent = 'Update Commitment';
+    }
+  } catch(e) {
+    console.error('Error fetching existing commitment', e);
+  }
+
   document.getElementById('modalOverlay').classList.add('open');
 }
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
 }
 
+// ── AUTH MODAL ──
+function openAuthModal() {
+  document.getElementById('authModalOverlay').classList.add('open');
+}
+function closeAuthModal() {
+  document.getElementById('authModalOverlay').classList.remove('open');
+}
+function toggleAuthMode() {
+  isLoginMode = !isLoginMode;
+  document.getElementById('authTitle').textContent = isLoginMode ? 'Log In' : 'Sign Up';
+  document.getElementById('authSub').textContent = isLoginMode ? 'Welcome back, investor.' : 'Create an investor account to start committing.';
+  document.getElementById('authNameGroup').style.display = isLoginMode ? 'none' : 'block';
+  document.getElementById('authPhoneGroup').style.display = isLoginMode ? 'none' : 'block';
+  document.getElementById('authSubmitBtn').textContent = isLoginMode ? 'Log In' : 'Create Account';
+  document.getElementById('authSwitchText').textContent = isLoginMode ? "Don't have an account? " : "Already have an account? ";
+  document.getElementById('authSwitchBtn').textContent = isLoginMode ? 'Sign Up' : 'Log In';
+}
+
+async function submitAuth() {
+  var email = document.getElementById('authEmail').value.trim();
+  var password = document.getElementById('authPassword').value;
+  var btn = document.getElementById('authSubmitBtn');
+
+  if (!email || !password) {
+    showToast('⚠️ Please enter email and password.', true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  try {
+    if (isLoginMode) {
+      await firebase.auth().signInWithEmailAndPassword(email, password);
+      showToast('✅ Successfully logged in!');
+    } else {
+      var name = document.getElementById('authName').value.trim();
+      var phone = document.getElementById('authPhone').value.trim();
+      if (!name || !phone) {
+        showToast('⚠️ Please provide your name and phone number.', true);
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        return;
+      }
+      var res = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      await db.collection('users').doc(res.user.uid).set({
+        name: name,
+        email: email,
+        phone: phone,
+        role: 'investor',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('✅ Account created successfully!');
+    }
+    closeAuthModal();
+  } catch (error) {
+    showToast('⚠️ ' + error.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = isLoginMode ? 'Log In' : 'Create Account';
+  }
+}
+
+function signOut() {
+  firebase.auth().signOut().then(function() {
+    showToast('✅ Signed out successfully.');
+  });
+}
+
 // ── COMMIT TO INVEST — WRITES TO FIRESTORE ──
 async function submitCommit() {
-  var name = document.getElementById('commitName').value.trim();
-  var email = document.getElementById('commitEmail').value.trim();
-  var phone = document.getElementById('commitPhone').value.trim();
+  if (!currentUser) return;
   var amount = parseFloat(document.getElementById('commitAmount').value);
   var message = document.getElementById('commitMessage').value.trim();
 
-  if (!name || !email || !phone || !amount) {
-    showToast('⚠️ Please fill in all required fields.', true);
+  if (!amount) {
+    showToast('⚠️ Please enter an investment amount.', true);
     return;
   }
   if (!currentSME) {
@@ -326,9 +441,19 @@ async function submitCommit() {
     return;
   }
 
-  var remaining = currentSME.goal - currentSME.committed;
-  if (remaining <= 0) {
-    showToast('⚠️ This campaign is already fully funded!', true);
+  var existingAmount = currentCommitment ? currentCommitment.data().investmentAmountLkr : 0;
+  var delta = amount - existingAmount;
+  
+  if (delta === 0 && currentCommitment && currentCommitment.data().message === message) {
+    showToast('⚠️ No changes made.', true);
+    closeModal();
+    return;
+  }
+
+  var remaining = (currentSME.goal - currentSME.committed) + existingAmount;
+
+  if (amount > remaining) {
+    showToast('⚠️ Cannot exceed goal. Max allowed is ' + fmtLKR(remaining), true);
     return;
   }
 
@@ -338,52 +463,54 @@ async function submitCommit() {
     return;
   }
 
-  if (amount > remaining) {
-    showToast('⚠️ Cannot exceed goal. Only ' + fmtLKR(remaining) + ' remaining.', true);
-    return;
-  }
-
   var submitBtn = document.getElementById('commitSubmitBtn');
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting...';
 
   try {
-    await db.collection('commitments').add({
-      investorName: name,
-      investorEmail: email,
-      investorPhone: phone,
-      investmentAmountLkr: amount,
-      message: message,
-      campaignId: currentSME.id,
-      campaignName: currentSME.name,
-      ownerUid: currentSME.ownerUid,
-      ownerEmail: currentSME.ownerEmail,
-      status: 'pending',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    if (currentCommitment) {
+      // Update existing
+      await db.collection('campaigns').doc(currentSME.id).collection('commitments').doc(currentCommitment.id).update({
+        investmentAmountLkr: amount,
+        message: message,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('✅ Commitment updated successfully!');
+    } else {
+      // Create new
+      await db.collection('campaigns').doc(currentSME.id).collection('commitments').add({
+        investorUid: currentUser.uid,
+        investmentAmountLkr: amount,
+        message: message,
+        campaignId: currentSME.id,
+        campaignName: currentSME.name,
+        ownerUid: currentSME.ownerUid,
+        ownerEmail: currentSME.ownerEmail,
+        status: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('✅ Your interest has been submitted! The business owner will contact you.');
+    }
 
-    // Update the campaign's total committed amount in Firestore
-    await db.collection('campaigns').doc(currentSME.id).update({
-      committedLkr: firebase.firestore.FieldValue.increment(amount)
-    });
+    if (delta !== 0) {
+      await db.collection('campaigns').doc(currentSME.id).update({
+        committedLkr: firebase.firestore.FieldValue.increment(delta)
+      });
 
-    // Update local UI state
-    currentSME.committed += amount;
+      // Update local UI state
+      currentSME.committed += delta;
+      
+      // Refresh Detail Page UI
+      var pct = currentSME.goal > 0 ? Math.round((currentSME.committed / currentSME.goal) * 100) : 0;
+      document.getElementById('sdCommitted').textContent = fmtLKR(currentSME.committed) + ' of ' + fmtLKR(currentSME.goal) + ' committed';
+      document.getElementById('sdPct').textContent = pct + '%';
+      document.getElementById('sdBar').style.width = pct + '%';
 
-    // Refresh Detail Page UI
-    var pct = currentSME.goal > 0 ? Math.round((currentSME.committed / currentSME.goal) * 100) : 0;
-    document.getElementById('sdCommitted').textContent = fmtLKR(currentSME.committed) + ' of ' + fmtLKR(currentSME.goal) + ' committed';
-    document.getElementById('sdPct').textContent = pct + '%';
-    document.getElementById('sdBar').style.width = pct + '%';
-
-    // Refresh Home Page Cards to show updated progress bar
-    renderCards(SME_DATA);
+      // Refresh Home Page Cards
+      renderCards(SME_DATA);
+    }
 
     closeModal();
-    showToast('✅ Your interest has been submitted! The business owner will contact you.');
-    document.getElementById('commitName').value = '';
-    document.getElementById('commitEmail').value = '';
-    document.getElementById('commitPhone').value = '';
     document.getElementById('commitAmount').value = '';
     document.getElementById('commitMessage').value = '';
   } catch (error) {
@@ -391,13 +518,16 @@ async function submitCommit() {
     showToast('⚠️ Failed to submit. Please try again.', true);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit Expression of Interest';
+    submitBtn.textContent = currentCommitment ? 'Update Commitment' : 'Submit Expression of Interest';
   }
 }
 
 // ── EVENT LISTENERS ──
 document.getElementById('modalOverlay').addEventListener('click', function (e) {
   if (e.target === this) closeModal();
+});
+document.getElementById('authModalOverlay')?.addEventListener('click', function (e) {
+  if (e.target === this) closeAuthModal();
 });
 
 // ── INIT: Load campaigns from Firestore ──

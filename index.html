@@ -1298,8 +1298,8 @@
       <a>For Investors</a>
       <a>Register SME</a>
     </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-outline btn-sm" onclick="goHome()">Log In</button>
+    <div style="display:flex;gap:10px;" id="navAuthBtns">
+      <button class="btn btn-outline btn-sm" onclick="openAuthModal()">Log In</button>
       <button class="btn btn-primary btn-sm">List Your SME</button>
     </div>
   </nav>
@@ -1492,19 +1492,8 @@
     <div class="modal">
       <button class="modal-close" onclick="closeModal()">✕</button>
       <h2 class="modal-title">Commit to Invest</h2>
-      <p class="modal-sub">Fill in your details. The business owner will contact you directly.</p>
-      <div class="form-group">
-        <label class="form-label">Full Name</label>
-        <input class="form-input" type="text" id="commitName" placeholder="Your full name" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input class="form-input" type="email" id="commitEmail" placeholder="your@email.com" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone Number</label>
-        <input class="form-input" type="tel" id="commitPhone" placeholder="+94 7X XXX XXXX" required>
-      </div>
+      <p class="modal-sub">Amount and optional message.</p>
+      
       <div class="form-group">
         <label class="form-label">Investment Amount (LKR)</label>
         <input class="form-input" type="number" id="commitAmount" placeholder="Minimum investment applies" required>
@@ -1512,7 +1501,7 @@
       <div class="form-group">
         <label class="form-label">Message (Optional)</label>
         <textarea class="form-input" rows="3" id="commitMessage"
-          placeholder="Tell us about yourself or your investment goals..."></textarea>
+          placeholder="Tell us about your investment goals..."></textarea>
       </div>
       <button class="btn btn-primary" id="commitSubmitBtn" style="width:100%;padding:14px;font-size:15px;"
         onclick="submitCommit()">Submit Expression of Interest</button>
@@ -1521,11 +1510,47 @@
     </div>
   </div>
 
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModalOverlay">
+    <div class="modal">
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+      <h2 class="modal-title" id="authTitle">Sign Up</h2>
+      <p class="modal-sub" id="authSub">Create an investor account to start committing.</p>
+      
+      <div class="form-group" id="authNameGroup">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" id="authName" placeholder="Your full name">
+      </div>
+      <div class="form-group" id="authPhoneGroup">
+        <label class="form-label">Phone Number</label>
+        <input class="form-input" type="tel" id="authPhone" placeholder="+94 7X XXX XXXX">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" id="authEmail" placeholder="your@email.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="authPassword" placeholder="••••••••" required>
+      </div>
+
+      <button class="btn btn-primary" id="authSubmitBtn" style="width:100%;padding:14px;font-size:15px;margin-bottom:10px;"
+        onclick="submitAuth()">Create Account</button>
+      
+      <div style="text-align:center;font-size:13px;color:var(--text-secondary);">
+        <span id="authSwitchText">Already have an account? </span>
+        <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--green-600);font-weight:600;" id="authSwitchBtn">Log In</a>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast"><span class="material-symbols-outlined" style="vertical-align:bottom;font-size:18px;">check_circle</span> Your interest has been submitted! The owner will contact you.</div>
 
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js"></script>
 
