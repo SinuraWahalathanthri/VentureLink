@@ -305,18 +305,35 @@ function updateImpliedValuation() {
   const goalEl = document.getElementById('cfGoal');
   const equityEl = document.getElementById('cfEquity');
   const out = document.getElementById('impliedVal');
+  const warningEl = document.getElementById('valuationWarning'); 
+
   if (!goalEl || !equityEl || !out) return;
-  const goal = Number(goalEl.value || 0);
-  const equity = Number(equityEl.value || 0);
-  if (!goal || !equity) {
-    out.textContent = '—';
+
+  const goal = parseFloat(goalEl.value);
+  const equity = parseFloat(equityEl.value);
+
+  out.textContent = '—';
+  if (warningEl) warningEl.textContent = '';
+
+  if (isNaN(goal) || isNaN(equity) || goal <= 0 || equity <= 0) {
+    return; 
+  }
+
+  if (equity > 100) {
+    if (warningEl) warningEl.textContent = 'Equity cannot exceed 100%';
     return;
   }
-  const valuation = (goal / (equity / 100));
-  out.textContent =
-    'LKR ' + valuation.toLocaleString(undefined, { maximumFractionDigits: 0 });
-}
+  
+  if (equity > 50 && warningEl) {
+    warningEl.textContent = 'Warning: High equity dilution detected.';
+  }
 
+  const valuation = goal / (equity / 100);
+
+  out.textContent = 'LKR ' + valuation.toLocaleString(undefined, { 
+    maximumFractionDigits: 0 
+  });
+}
 // ─── Document uploads (4 docs) ──────────────────────────────────
 const docFiles = {
   registration: null,
@@ -399,10 +416,9 @@ async function submitCampaignInternal() {
   const fundingGoalLkr = readNumber('cfGoal');
   const equityOfferedPct = Number(readValue('cfEquity')) || 0;
   const minInvestmentLkr = readNumber('cfMinInvestment');
-  const deadline = readValue('cfDeadline'); // keep as string "YYYY-MM-DD"
+  const deadline = readValue('cfDeadline'); 
   const useOfFunds = getUseOfFunds();
 
-  // Basic validation (required fields)
   if (
     !businessName ||
     !industry ||
