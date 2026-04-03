@@ -425,9 +425,6 @@ function signOut() {
 async function submitCommit() {
   if (!currentUser) return;
   var amount = parseFloat(document.getElementById('commitAmount').value);
-  if (Number.isInteger(amount)) {
-    amount += 0.00000001; // Forces Firestore JS SDK to store as Double instead of Integer
-  }
   var message = document.getElementById('commitMessage').value.trim();
 
   if (!amount) {
