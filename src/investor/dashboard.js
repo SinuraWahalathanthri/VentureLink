@@ -25,35 +25,39 @@ async function loadDashboard() {
   let totalCommitted = 0;
 
   try {
-    var snapshot = await db.collectionGroup('commitments')
-      .where('investorUid', '==', currentUser.uid)
-      .get();
+    const token = await currentUser.getIdToken();
+    const response = await fetch('http://localhost:5000/api/commitments/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
-    if (snapshot.empty) {
+    if (!response.ok) throw new Error('Failed to fetch commitments');
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">You haven\'t made any commitments yet.</td></tr>';
       return;
     }
 
     globalCommits = [];
-    snapshot.forEach(doc => {
-      let d = doc.data();
-
+    data.forEach(d => {
       // Ensure amount is treated as double
       let amount = Number(parseFloat(d.investmentAmountLkr || 0).toFixed(2));
 
-      globalCommits.push({ id: doc.id, ref: doc.ref, ...d, investmentAmountLkr: amount });
+      globalCommits.push({ ...d, investmentAmountLkr: amount });
       totalCommitted += amount;
     });
 
     // Sort by date
     globalCommits.sort((a, b) => {
-      let da = a.createdAt ? a.createdAt.toMillis() : 0;
-      let dbb = b.createdAt ? b.createdAt.toMillis() : 0;
+      let da = a.createdAt ? a.createdAt : 0;
+      let dbb = b.createdAt ? b.createdAt : 0;
       return dbb - da;
     });
 
     tbody.innerHTML = globalCommits.map(c => {
-      let dateStr = c.createdAt ? new Date(c.createdAt.toMillis()).toLocaleDateString() : 'Pending';
+      let dateStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Pending';
       let statusColor = c.status === 'accepted' ? 'var(--green-600)' : (c.status === 'rejected' ? '#B91C1C' : 'var(--amber-400)');
       let statusStr = c.status ? c.status.charAt(0).toUpperCase() + c.status.slice(1) : 'Pending';
       let amountStr = 'LKR ' + Number(c.investmentAmountLkr).toLocaleString();
@@ -130,17 +134,21 @@ document.getElementById('btnSaveEdit').addEventListener('click', async function 
   let delta = newAmount - oldAmount;
 
   try {
-    await currentDashCommitment.ref.update({
-      investmentAmountLkr: newAmount,
-      message: newMessage,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    const token = await currentUser.getIdToken();
+    const response = await fetch(`http://localhost:5000/api/commitments/${currentDashCommitment.campaignId}/${currentDashCommitment.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        newAmount: newAmount,
+        message: newMessage,
+        delta: delta
+      })
     });
-
-    if (delta !== 0) {
-      await currentDashCommitment.ref.parent.parent.update({
-        committedLkr: firebase.firestore.FieldValue.increment(delta)
-      });
-    }
+    
+    if (!response.ok) throw new Error('Failed to update commitment');
 
     closeDashModal();
     loadDashboard();
@@ -158,11 +166,15 @@ document.getElementById('btnConfirmDelete').addEventListener('click', async func
   let oldAmount = Number(parseFloat(currentDashCommitment.investmentAmountLkr || 0).toFixed(2));
 
   try {
-    await currentDashCommitment.ref.delete();
-
-    await currentDashCommitment.ref.parent.parent.update({
-      committedLkr: firebase.firestore.FieldValue.increment(-oldAmount)
+    const token = await currentUser.getIdToken();
+    const response = await fetch(`http://localhost:5000/api/commitments/${currentDashCommitment.campaignId}/${currentDashCommitment.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
+
+    if (!response.ok) throw new Error('Failed to delete commitment');
 
     closeDashModal();
     loadDashboard();

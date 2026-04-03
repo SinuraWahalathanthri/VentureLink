@@ -131,8 +131,13 @@ async function loadCampaigns() {
   document.getElementById('cardCount').textContent = 'Loading...';
 
   try {
-    var snapshot = await db.collection('campaigns').where('status', '==', 'published').get();
-    SME_DATA = snapshot.docs.map(mapCampaignToCard);
+    const response = await fetch('http://localhost:5000/api/campaigns');
+    if (!response.ok) throw new Error('Failed to fetch campaigns');
+    const campaignsData = await response.json();
+    
+    SME_DATA = campaignsData.map(data => {
+      return mapCampaignToCard({ id: data.id, data: () => data });
+    });
 
     if (SME_DATA.length === 0) {
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:48px;margin-bottom:1rem;color:var(--gray-400);">construction</span><p style="font-size:1.2rem;margin-bottom:0.5rem;color:var(--text-primary);">No campaigns available yet</p><p>Check back soon for exciting investment opportunities!</p></div>';
@@ -325,15 +330,15 @@ async function openModal() {
   document.querySelector('#modalOverlay .modal-title').textContent = 'Commit to Invest';
 
   try {
-    var snapshot = await db.collection('campaigns').doc(currentSME.id).collection('commitments')
-      .where('investorUid', '==', currentUser.uid)
-      .limit(1)
-      .get();
+    const token = await currentUser.getIdToken();
+    const response = await fetch(`http://localhost:5000/api/commitments/campaign/${currentSME.id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error('Failed to fetch commitment');
+    const data = await response.json();
     
-    if (!snapshot.empty) {
-      let existingDoc = snapshot.docs[0];
-      currentCommitment = existingDoc;
-      let data = existingDoc.data();
+    if (data) {
+      currentCommitment = data;
       
       // Clean forced floating point residue for UI clarity
       let cleanAmount = Math.round((data.investmentAmountLkr || 0) * 100) / 100;
@@ -397,12 +402,14 @@ async function submitAuth() {
         return;
       }
       var res = await firebase.auth().createUserWithEmailAndPassword(email, password);
-      await db.collection('users').doc(res.user.uid).set({
-        name: name,
-        email: email,
-        phone: phone,
-        role: 'investor',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      var token = await res.user.getIdToken();
+      await fetch('http://localhost:5000/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: name, email: email, phone: phone })
       });
       showToast('✅ Account created successfully!');
     }
@@ -436,10 +443,10 @@ async function submitCommit() {
     return;
   }
 
-  var existingAmount = currentCommitment ? currentCommitment.data().investmentAmountLkr : 0;
+  var existingAmount = currentCommitment ? currentCommitment.investmentAmountLkr : 0;
   var delta = amount - existingAmount;
   
-  if (delta === 0 && currentCommitment && currentCommitment.data().message === message) {
+  if (delta === 0 && currentCommitment && currentCommitment.message === message) {
     showToast('⚠️ No changes made.', true);
     closeModal();
     return;
@@ -463,35 +470,41 @@ async function submitCommit() {
   submitBtn.textContent = 'Submitting...';
 
   try {
+    const token = await currentUser.getIdToken();
     if (currentCommitment) {
       // Update existing
-      await db.collection('campaigns').doc(currentSME.id).collection('commitments').doc(currentCommitment.id).update({
-        investmentAmountLkr: amount,
-        message: message,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      const res = await fetch(`http://localhost:5000/api/commitments/${currentSME.id}/${currentCommitment.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newAmount: amount, message: message, delta: delta })
       });
+      if (!res.ok) throw new Error('Update failed');
       showToast('✅ Commitment updated successfully!');
     } else {
       // Create new
-      await db.collection('campaigns').doc(currentSME.id).collection('commitments').add({
-        investorUid: currentUser.uid,
-        investmentAmountLkr: amount,
-        message: message,
-        campaignId: currentSME.id,
-        campaignName: currentSME.name,
-        ownerUid: currentSME.ownerUid,
-        ownerEmail: currentSME.ownerEmail,
-        status: 'pending',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      const res = await fetch('http://localhost:5000/api/commitments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          amount: amount,
+          message: message,
+          campaignId: currentSME.id,
+          campaignName: currentSME.name,
+          ownerUid: currentSME.ownerUid,
+          ownerEmail: currentSME.ownerEmail
+        })
       });
+      if (!res.ok) throw new Error('Create failed');
       showToast('✅ Your interest has been submitted! The business owner will contact you.');
     }
 
     if (delta !== 0) {
-      await db.collection('campaigns').doc(currentSME.id).update({
-        committedLkr: firebase.firestore.FieldValue.increment(delta)
-      });
-
       // Update local UI state
       currentSME.committed += delta;
       
