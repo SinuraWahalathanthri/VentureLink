@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMEFund.lk — Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+   <style>
+      :root {
+        --g900: #173404; --g800: #27500a; --g600: #3b6d11;
+        --g400: #639922; --g200: #97c459; --g100: #c0dd97; --g50: #eaf3de;
+        --a400: #ba7517; --a100: #fac775; --a50: #faeeda;
+        --r400: #e24b4a; --r50: #fcebeb;
+        --b400: #378add; --b50: #e6f1fb;
+        --gray50: #f8f8f5; --gray100: #efefea; --gray200: #d3d1c7;
+        --gray400: #888780; --gray600: #5f5e5a; --white: #ffffff;
+        --text1: #1a1a16; --text2: #4a4a44; --text3: #888880;
+        --border: rgba(0,0,0,0.09);
+        --radius: 9999px; --rmd: 14px; --rlg: 20px; --rxl: 28px;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+        --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+        --shadow-lg: 0 12px 40px rgba(0,0,0,.18);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: 'Outfit', sans-serif;
+        background: linear-gradient(160deg, var(--g900) 0%, var(--g600) 55%, var(--g400) 100%);
+        color: var(--text1); min-height: 100vh;
+        display: flex; align-items: center; justify-content: center;
+        padding: 2rem; position: relative; overflow: hidden;
+      }
+      body::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+      }
+      h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; line-height: 1.25; }
+
+      /* ── CARD ── */
+      .reg-card {
+        background: white; border-radius: var(--rxl);
+        width: 100%; max-width: 580px;
+        box-shadow: var(--shadow-lg); overflow: hidden;
+        position: relative; z-index: 1;
+        animation: slideUp .5s cubic-bezier(.34,1.2,.64,1) both;
+      }
+      @keyframes slideUp {
+        from { opacity:0; transform: translateY(32px) scale(.97); }
+        to   { opacity:1; transform: translateY(0) scale(1); }
+      }
+
+      /* ── HEADER ── */
+      .reg-top {
+        background: linear-gradient(135deg, var(--g900), var(--g600));
+        padding: 1.75rem 2.5rem 1.5rem;
+      }
+      .reg-logo { display:flex; align-items:center; gap:10px; margin-bottom:1.5rem; }
+      .reg-logo-icon {
+        width:36px; height:36px; background:rgba(255,255,255,.2);
+        border-radius:var(--radius); display:flex; align-items:center;
+        justify-content:center; font-weight:700; font-size:15px; color:white;
+      }
+      .reg-logo-text { font-family:'DM Serif Display',serif; font-size:1.2rem; color:white; }
+      .reg-logo-text span { color:var(--g100); }
+
+      /* Steps */
+      .reg-steps { display:flex; align-items:center; }
+      .step-item { display:flex; align-items:center; flex:1; }
+      .step-circle {
+        width:32px; height:32px; border-radius:var(--radius);
+        display:flex; align-items:center; justify-content:center;
+        font-size:13px; font-weight:600; flex-shrink:0; transition:all .3s;
+      }
+      .step-circle.done   { background:var(--g100); color:var(--g800); }
+      .step-circle.active { background:white; color:var(--g800); box-shadow:0 0 0 4px rgba(255,255,255,.25); }
+      .step-circle.pending{ background:rgba(255,255,255,.15); color:rgba(255,255,255,.5); }
+      .step-line  { flex:1; height:2px; background:rgba(255,255,255,.2); margin:0 4px; }
+      .step-line.done { background:var(--g100); }
+      .step-labels { display:flex; justify-content:space-between; margin-top:6px; }
+      .step-label { font-size:10px; color:rgba(255,255,255,.6); text-align:center; flex:1; }
+      .step-label.active { color:white; font-weight:600; }
+
+      /* ── BODY ── */
+      .reg-body { padding:2rem 2.5rem 2.5rem; }
+      .form-step { display:none; }
+      .form-step.active { display:block; animation: fadeIn .3s ease; }
+      @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+      .reg-title { font-size:1.5rem; color:var(--g800); margin-bottom:4px; }
+      .reg-sub   { font-size:13px; color:var(--text3); margin-bottom:1.75rem; }
+
+      .form-row { display:grid; gap:14px; margin-bottom:14px; }
+      .form-row.cols2 { grid-template-columns:1fr 1fr; }
+      .form-group { display:flex; flex-direction:column; gap:6px; }
+      .form-label {
+        font-size:12px; font-weight:600; color:var(--text2);
+        text-transform:uppercase; letter-spacing:.05em;
+      }
+      .form-label span { color:var(--r400); margin-left:2px; }
+      .form-input {
+        padding:11px 16px; border-radius:var(--radius);
+        border:1.5px solid var(--border); background:var(--gray50);
+        font-family:'Outfit',sans-serif; font-size:14px; color:var(--text1);
+        outline:none; transition:all .2s; width:100%;
+      }
+      .form-input:focus { border-color:var(--g400); background:white; box-shadow:0 0 0 3px rgba(99,153,34,.12); }
+      .form-input::placeholder { color:var(--text3); }
+      .form-input.error { border-color:var(--r400); background:#fff8f8; }
+      .form-input.error:focus { box-shadow:0 0 0 3px rgba(226,75,74,.12); }
+      textarea.form-input { border-radius:16px; resize:vertical; min-height:90px; }
+      select.form-input { cursor:pointer; appearance:none;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888780' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
+      }
+      .field-error { font-size:11px; color:var(--r400); margin-top:2px; display:none; }
+      .field-error.show { display:block; }
+
+      /* Password strength */
+      .pw-strength { height:3px; border-radius:var(--radius); margin-top:6px; background:var(--gray100); overflow:hidden; }
+      .pw-strength-fill { height:100%; border-radius:var(--radius); transition:all .3s; width:0; }
+      .pw-strength-text { font-size:11px; margin-top:3px; }
+
+      /* ── UPLOADS ── */
+      .upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+      .upload-zone {
+        border:2px dashed var(--gray200); border-radius:var(--rlg);
+        padding:1.5rem 1rem; text-align:center; cursor:pointer;
+        transition:all .25s; position:relative; overflow:hidden; background:var(--gray50);
+      }
+      .upload-zone:hover   { border-color:var(--g400); background:var(--g50); }
+      .upload-zone.filled  { border-style:solid; border-color:var(--g400); background:var(--g50); }
+      .upload-zone.errored { border-color:var(--r400); background:var(--r50); }
+      .upload-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+      .upload-icon {
+        width:40px; height:40px; background:var(--gray100); border-radius:var(--radius);
+        display:flex; align-items:center; justify-content:center;
+        margin:0 auto 10px; color:var(--gray400); transition:background .2s;
+      }
+      .upload-zone.filled .upload-icon { background:var(--g100); color:var(--g600); }
+      .upload-zone-title { font-size:13px; font-weight:600; color:var(--text2); margin-bottom:3px; }
+      .upload-zone-sub   { font-size:11px; color:var(--text3); }
+      .upload-preview    { width:60px; height:60px; border-radius:var(--rmd); object-fit:cover; margin:0 auto 8px; display:none; }
+      .upload-zone.filled .upload-preview { display:block; }
+      .upload-zone.filled .upload-default-icon { display:none; }
+
+      .profile-upload {
+        display:flex; flex-direction:column; align-items:center;
+        padding:1.75rem; border:2px dashed var(--gray200); border-radius:var(--rlg);
+        cursor:pointer; transition:all .25s; background:var(--gray50);
+        position:relative; overflow:hidden; margin-bottom:14px;
+      }
+      .profile-upload:hover  { border-color:var(--g400); background:var(--g50); }
+      .profile-upload.filled { border-style:solid; border-color:var(--g400); }
+      .profile-upload.errored{ border-color:var(--r400); }
+      .profile-upload input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+      .profile-avatar-wrap {
+        width:80px; height:80px; border-radius:var(--radius);
+        background:var(--gray100); display:flex; align-items:center;
+        justify-content:center; margin-bottom:10px; overflow:hidden;
+        border:3px solid var(--gray200);
+      }
+      .profile-upload.filled .profile-avatar-wrap { border-color:var(--g400); }
+      .profile-avatar-wrap img { width:100%; height:100%; object-fit:cover; display:none; }
+
+      /* ── BUTTONS ── */
+      .btn {
+        display:inline-flex; align-items:center; justify-content:center;
+        gap:8px; border-radius:var(--radius); border:none; cursor:pointer;
+        font-family:'Outfit',sans-serif; font-weight:600; transition:all .2s;
+      }
+      .btn:disabled { opacity:.55; pointer-events:none; }
+      .btn-primary { background:var(--g400); color:white; padding:12px 28px; font-size:14px; }
+      .btn-primary:hover { background:var(--g600); transform:translateY(-1px); box-shadow:0 4px 12px rgba(99,153,34,.35); }
+      .btn-ghost { background:transparent; color:var(--text3); padding:12px 20px; font-size:14px; }
+      .btn-ghost:hover { color:var(--text2); background:var(--gray100); }
+
+      .reg-actions {
+        display:flex; justify-content:space-between; align-items:center;
+        margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border);
+      }
+
+      /* Loading spinner */
+      .spinner {
+        width:16px; height:16px; border:2px solid rgba(255,255,255,.4);
+        border-top-color:white; border-radius:50%;
+        animation:spin .7s linear infinite; display:none;
+      }
+      .btn.loading .spinner { display:block; }
+      .btn.loading .btn-label { display:none; }
+      @keyframes spin { to{transform:rotate(360deg)} }
+
+      /* Tips */
+      .info-tip {
+        background:var(--b50); border-radius:var(--rmd);
+        padding:10px 14px; font-size:12px; color:#185fa5;
+        margin-bottom:14px; display:flex; gap:8px; align-items:flex-start;
+      }
+
+      /* ── SUCCESS ── */
+      .success-screen { text-align:center; padding:2rem 1rem; }
+      .success-icon {
+        width:80px; height:80px; background:var(--g50); border-radius:var(--radius);
+        display:flex; align-items:center; justify-content:center;
+        margin:0 auto 1.25rem; color:var(--g600);
+        animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+      }
+      @keyframes popIn { from{opacity:0;transform:scale(.5)} to{opacity:1;transform:scale(1)} }
+
+      /* ── TOAST ── */
+      .toast {
+        position:fixed; bottom:2rem; left:50%;
+        transform:translateX(-50%) translateY(100px);
+        border-radius:var(--radius); padding:13px 24px;
+        font-size:14px; font-weight:500; z-index:9999;
+        transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+        white-space:nowrap; display:flex; align-items:center; gap:8px;
+      }
+      .toast.success { background:var(--g800); color:white; }
+      .toast.error   { background:#b91c1c; color:white; }
+      .toast.show    { transform:translateX(-50%) translateY(0); }
+
+      @media(max-width:520px){
+        .form-row.cols2 { grid-template-columns:1fr; }
+        .reg-body { padding:1.5rem; }
+        .reg-top  { padding:1.5rem 1.5rem 1.25rem; }
+        .upload-grid { grid-template-columns:1fr; }
+      }
+  </style>
+  </head>
+  <body>
+
+    <div class="reg-card">
+      <!-- HEADER -->
+      <div class="reg-top">
+        <div class="reg-logo">
+          <div class="reg-logo-icon">S</div>
+          <span class="reg-logo-text">SMEFund<span>.lk</span></span>
+        </div>
+        <div class="reg-steps">
+          <div class="step-item">
+            <div class="step-circle active" id="sc1">1</div>
+            <div class="step-line" id="sl1"></div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle pending" id="sc2">2</div>
+            <div class="step-line" id="sl2"></div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle pending" id="sc3">3</div>
+          </div>
+        </div>
+        <div class="step-labels">
+          <span class="step-label active"  id="sl-l1">Personal Info</span>
+          <span class="step-label"         id="sl-l2">Identity Docs</span>
+          <span class="step-label"         id="sl-l3">Profile Photo</span>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="reg-body">
+
+        <!-- ═══ STEP 1 ═══ -->
+        <div class="form-step active" id="step1">
+          <h2 class="reg-title">Create Your Account</h2>
+          <p class="reg-sub">Tell us about yourself to get started listing your business.</p>
+
+          <div class="form-row cols2">
+            <div class="form-group">
+              <label class="form-label">First Name <span>*</span></label>
+              <input class="form-input" type="text" id="firstName" placeholder="Kamal" autocomplete="given-name"/>
+              <span class="field-error" id="err-firstName">Please enter your first name.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name <span>*</span></label>
+              <input class="form-input" type="text" id="lastName" placeholder="Perera" autocomplete="family-name"/>
+              <span class="field-error" id="err-lastName">Please enter your last name.</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email Address <span>*</span></label>
+              <input class="form-input" type="email" id="regEmail" placeholder="kamal@mybusiness.lk" autocomplete="email"/>
+              <span class="field-error" id="err-email">Please enter a valid email address.</span>
+            </div>
+          </div>
+
+          <div class="form-row cols2">
+            <div class="form-group">
+              <label class="form-label">Mobile Number <span>*</span></label>
+              <input class="form-input" type="tel" id="mobile" placeholder="+94 77 123 4567" autocomplete="tel"/>
+              <span class="field-error" id="err-mobile">Enter a valid mobile number.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date of Birth <span>*</span></label>
+              <input class="form-input" type="date" id="dob" max=""/>
+              <span class="field-error" id="err-dob">Please enter your date of birth.</span>
+            </div>
+          </div>
+
+          <div class="form-row cols2">
+            <div class="form-group">
+              <label class="form-label">NIC Number <span>*</span></label>
+              <input class="form-input" type="text" id="nic" placeholder="XXXXXXXXXV or XXXXXXXXXX" maxlength="12"/>
+              <span class="field-error" id="err-nic">Enter a valid NIC (9 digits + V/X or 12 digits).</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">District <span>*</span></label>
+              <select class="form-input" id="district">
+                <option value="">Select district</option>
+                <option>Colombo</option><option>Gampaha</option><option>Kalutara</option>
+                <option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option>
+                <option>Galle</option><option>Matara</option><option>Hambantota</option>
+                <option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option>
+                <option>Mullaitivu</option><option>Vavuniya</option><option>Trincomalee</option>
+                <option>Batticaloa</option><option>Ampara</option><option>Puttalam</option>
+                <option>Kurunegala</option><option>Anuradhapura</option><option>Polonnaruwa</option>
+                <option>Badulla</option><option>Moneragala</option><option>Ratnapura</option>
+                <option>Kegalle</option>
+              </select>
+              <span class="field-error" id="err-district">Please select your district.</span>
+            </div>
+          </div>
+
+          <div class="form-row cols2">
+            <div class="form-group">
+              <label class="form-label">Password <span>*</span></label>
+              <input class="form-input" type="password" id="password" placeholder="Create a strong password" autocomplete="new-password" oninput="checkPasswordStrength(this.value)"/>
+              <div class="pw-strength"><div class="pw-strength-fill" id="pwFill"></div></div>
+              <div class="pw-strength-text" id="pwText" style="color:var(--text3)"></div>
+              <span class="field-error" id="err-password">Password must be at least 8 characters.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm Password <span>*</span></label>
+              <input class="form-input" type="password" id="confirmPassword" placeholder="Repeat password" autocomplete="new-password"/>
+              <span class="field-error" id="err-confirmPassword">Passwords do not match.</span>
+            </div>
+          </div>
+
+          <div class="reg-actions">
+            <span style="font-size:13px;color:var(--text3)">
+              Already registered?
+              <a href="SMELogin.html" style="color:var(--g600);font-weight:600" >Sign In</a>
+            </span>
+            <button class="btn btn-primary" id="btn-step1" onclick="handleStep1()">
+              <span class="btn-label">Continue →</span>
+              <span class="spinner"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 2 ═══ -->
+        <div class="form-step" id="step2">
+          <h2 class="reg-title">Identity Verification</h2>
+          <p class="reg-sub">Upload clear photos of your National Identity Card.</p>
+
+          <div class="info-tip">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#185fa5" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span>Ensure photos are clear, well-lit and all text is readable. All data is encrypted and handled securely.</span>
+          </div>
+
+          <div class="upload-grid">
+            <div class="upload-zone" id="nicFrontZone">
+              <input type="file" id="nicFrontFile" accept="image/*" onchange="handleUpload(this,'nicFrontZone','nicFrontPreview')"/>
+              <img id="nicFrontPreview" class="upload-preview" alt="NIC Front"/>
+              <div class="upload-icon upload-default-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>
+              </div>
+              <div class="upload-zone-title">NIC — Front Side</div>
+              <div class="upload-zone-sub">JPG, PNG · Max 5MB</div>
+            </div>
+            <div class="upload-zone" id="nicBackZone">
+              <input type="file" id="nicBackFile" accept="image/*" onchange="handleUpload(this,'nicBackZone','nicBackPreview')"/>
+              <img id="nicBackPreview" class="upload-preview" alt="NIC Back"/>
+              <div class="upload-icon upload-default-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M7 15h5M15 15h2"/></svg>
+              </div>
+              <div class="upload-zone-title">NIC — Back Side</div>
+              <div class="upload-zone-sub">JPG, PNG · Max 5MB</div>
+            </div>
+          </div>
+          <span class="field-error" id="err-nic-docs" style="display:none;margin-bottom:10px;font-size:12px">Please upload both NIC front and back images.</span>
+
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Type of ID</label>
+            <select class="form-input" id="idType">
+              <option value="NIC">National Identity Card (NIC)</option>
+              <option value="Passport">Passport</option>
+              <option value="Driving Licence">Driving Licence</option>
+            </select>
+          </div>
+
+          <div class="reg-actions">
+            <button class="btn btn-ghost" onclick="goToStep(1)">← Back</button>
+            <button class="btn btn-primary" id="btn-step2" onclick="handleStep2()">
+              <span class="btn-label">Continue →</span>
+              <span class="spinner"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 3 ═══ -->
+        <div class="form-step" id="step3">
+          <h2 class="reg-title">Profile Photo</h2>
+          <p class="reg-sub">Add a professional photo shown on your business listings.</p>
+
+          <div class="profile-upload" id="profileUploadZone">
+            <input type="file" id="profileFile" accept="image/*" onchange="handleProfileUpload(this)"/>
+            <div class="profile-avatar-wrap" id="profileAvatarWrap">
+              <img id="profilePreview" alt="Profile"/>
+              <svg viewBox="0 0 24 24" width="32" height="32" stroke="var(--gray400)" fill="none" stroke-width="1.5" id="profilePlaceholder">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px">Click to upload profile photo <span style="color:var(--r400)">*</span></div>
+              <div style="font-size:12px;color:var(--text3)">JPG or PNG · Square image recommended · Max 8MB</div>
+            </div>
+          </div>
+          <span class="field-error" id="err-profile" style="display:none;margin-bottom:10px;font-size:12px">Please upload a profile photo.</span>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Short Bio <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(Optional)</span></label>
+              <textarea class="form-input" id="bio" placeholder="Tell potential investors a little about yourself..."></textarea>
+            </div>
+          </div>
+          <div class="form-row cols2">
+            <div class="form-group">
+              <label class="form-label">LinkedIn <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(Optional)</span></label>
+              <input class="form-input" type="url" id="linkedin" placeholder="linkedin.com/in/yourname"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Website <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(Optional)</span></label>
+              <input class="form-input" type="url" id="website" placeholder="www.yourbusiness.lk"/>
+            </div>
+          </div>
+
+          <div class="reg-actions">
+            <button class="btn btn-ghost" onclick="goToStep(2)">← Back</button>
+            <button class="btn btn-primary" id="btn-step3" onclick="handleStep3()">
+              <span class="btn-label">Complete Registration</span>
+              <span class="spinner"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══ SUCCESS ═══ -->
+        <div class="form-step" id="stepSuccess">
+          <div class="success-screen">
+            <div class="success-icon">
+              <svg viewBox="0 0 24 24" width="40" height="40" stroke="var(--g600)" fill="none" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <h2 style="font-size:1.75rem;color:var(--g800);margin-bottom:.75rem">Welcome to SMEFund.lk!</h2>
+            <p style="color:var(--text2);font-size:14px;line-height:1.7">
+              Your account has been created successfully. Our team will verify your identity within 24 hours.
+              You can start setting up your campaign now!
+            </p>
+            <a href="SMEDashboard.html">
+              <button class="btn btn-primary" style="padding:14px 36px;font-size:15px;margin-top:1.75rem">
+                Go to Your Dashboard →
+              </button>
+            </a>
+            <p style="margin-top:1rem;font-size:12px;color:var(--text3)">
+              A confirmation email has been sent to your registered address.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+      import { initializeApp }                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+      import { getAuth, createUserWithEmailAndPassword, updateProfile }
+                                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+      import { getFirestore, doc, setDoc, serverTimestamp }
+                                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+      /* ─── Firebase config ─────────────────────────────────── */
+      const app  = initializeApp({
+        apiKey:            'AIzaSyAYp96VglG4XroleSiPhmBNxD1TsO66XvE',
+        authDomain:        'venturelink-8374b.firebaseapp.com',
+        projectId:         'venturelink-8374b',
+        storageBucket:     'venturelink-8374b.firebasestorage.app',
+        messagingSenderId: '1007831383423',
+        appId:             '1:1007831383423:web:369ee42965552687cc6e4a',
+      });
+      const auth = getAuth(app);
+      const db   = getFirestore(app);
+
+      /* ─── Cloudinary ──────────────────────────────────────── */
+      const CLOUD_NAME    = 'ddvlnblw7';
+      const IMG_PRESET    = 'venturelink';
+      const DOC_PRESET    = 'venturelink-docs';
+      const CLOUD_URL     = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
+
+      async function uploadToCloudinary(file, isDoc = false) {
+        const fd = new FormData();
+        fd.append('file',           file);
+        fd.append('upload_preset',  isDoc ? DOC_PRESET : IMG_PRESET);
+        fd.append('folder',         isDoc ? 'docs' : 'images');
+        const res  = await fetch(CLOUD_URL, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
+        return data.secure_url;
+      }
+
+      /* ─── State ───────────────────────────────────────────── */
+      let currentUID      = null;
+      let uploadedNicFront = null;
+      let uploadedNicBack  = null;
+      let uploadedProfile  = null;
+
+      /* ─── Toast ───────────────────────────────────────────── */
+      function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove('show'), 3500);
+      }
+
+      /* ─── Step indicator ──────────────────────────────────── */
+      function setStep(n) {
+        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+        const target = n === 'success'
+          ? document.getElementById('stepSuccess')
+          : document.getElementById('step' + n);
+        if (target) target.classList.add('active');
+
+        [1, 2, 3].forEach(i => {
+          const c = document.getElementById('sc' + i);
+          const l = document.getElementById('sl' + i);
+          const lbl = document.getElementById('sl-l' + i);
+          if (!c) return;
+          c.className = 'step-circle ' + (i < n ? 'done' : i === n ? 'active' : 'pending');
+          if (lbl) lbl.className = 'step-label' + (i === n ? ' active' : '');
+          if (l)   l.className   = 'step-line'  + (i < n ? ' done' : '');
+        });
+      }
+      window.goToStep = setStep;
+
+      /* ─── Field helpers ───────────────────────────────────── */
+      function setError(id, msg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = 'block';
+        if (msg) el.textContent = msg;
+      }
+      function clearErrors(...ids) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+      }
+      function markField(id, hasError) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('error', hasError);
+      }
+
+      /* ─── Password strength ───────────────────────────────── */
+      window.checkPasswordStrength = function(val) {
+        const fill = document.getElementById('pwFill');
+        const text = document.getElementById('pwText');
+        let score = 0;
+        if (val.length >= 8)  score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        const colors = ['#e24b4a','#ba7517','#639922','#27500a'];
+        const labels = ['Weak','Fair','Good','Strong'];
+        if (val.length === 0) { fill.style.width = '0'; text.textContent = ''; return; }
+        fill.style.width       = ((score / 4) * 100) + '%';
+        fill.style.background  = colors[score - 1];
+        text.textContent       = labels[score - 1];
+        text.style.color       = colors[score - 1];
+      };
+
+      /* ─── Image upload preview ────────────────────────────── */
+      window.handleUpload = function(input, zoneId, previewId) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { showToast('File too large. Max 5MB.', 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          const preview = document.getElementById(previewId);
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          document.getElementById(zoneId).classList.add('filled');
+          document.getElementById(zoneId).classList.remove('errored');
+        };
+        reader.readAsDataURL(file);
+        if (zoneId === 'nicFrontZone') uploadedNicFront = file;
+        if (zoneId === 'nicBackZone')  uploadedNicBack  = file;
+      };
+
+      window.handleProfileUpload = function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 8 * 1024 * 1024) { showToast('File too large. Max 8MB.', 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          const preview = document.getElementById('profilePreview');
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          document.getElementById('profilePlaceholder').style.display = 'none';
+          document.getElementById('profileUploadZone').classList.add('filled');
+          document.getElementById('profileUploadZone').classList.remove('errored');
+        };
+        reader.readAsDataURL(file);
+        uploadedProfile = file;
+      };
+
+      /* ─── DOB max ─────────────────────────────────────────── */
+      (function() {
+        const d = new Date(); d.setFullYear(d.getFullYear() - 18);
+        document.getElementById('dob').max = d.toISOString().split('T')[0];
+      })();
+
+      /* ─── Set loading state ───────────────────────────────── */
+      function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        btn.classList.toggle('loading', loading);
+        btn.disabled = loading;
+      }
+
+      /* ═══════════════════════════════════════════════════════
+         STEP 1 — Validate + Firebase createUser
+      ═══════════════════════════════════════════════════════ */
+      window.handleStep1 = async function() {
+        const firstName  = document.getElementById('firstName').value.trim();
+        const lastName   = document.getElementById('lastName').value.trim();
+        const email      = document.getElementById('regEmail').value.trim();
+        const mobile     = document.getElementById('mobile').value.trim();
+        const dob        = document.getElementById('dob').value;
+        const nic        = document.getElementById('nic').value.trim();
+        const district   = document.getElementById('district').value;
+        const password   = document.getElementById('password').value;
+        const confirm    = document.getElementById('confirmPassword').value;
+
+        clearErrors('err-firstName','err-lastName','err-email','err-mobile',
+                    'err-dob','err-nic','err-district','err-password','err-confirmPassword');
+        [firstName,lastName,email,mobile,dob,nic,district,password,confirm].forEach((_,i) => {
+          const ids = ['firstName','lastName','regEmail','mobile','dob','nic','district','password','confirmPassword'];
+          markField(ids[i], false);
+        });
+
+        let valid = true;
+        const require = (val, fieldId, errId, msg) => {
+          if (!val) { setError(errId, msg); markField(fieldId, true); valid = false; }
+        };
+
+        require(firstName, 'firstName',        'err-firstName',       'Please enter your first name.');
+        require(lastName,  'lastName',         'err-lastName',        'Please enter your last name.');
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setError('err-email', 'Please enter a valid email address.');
+          markField('regEmail', true); valid = false;
+        }
+        if (!mobile || !/^(\+94|0)[0-9]{9,10}$/.test(mobile.replace(/\s/g,''))) {
+          setError('err-mobile', 'Enter a valid Sri Lankan mobile number.');
+          markField('mobile', true); valid = false;
+        }
+        require(dob, 'dob', 'err-dob', 'Please enter your date of birth.');
+        if (!nic || !/^([0-9]{9}[vVxX]|[0-9]{12})$/.test(nic)) {
+          setError('err-nic', 'Enter a valid NIC (e.g. 901234567V or 199012345678).');
+          markField('nic', true); valid = false;
+        }
+        require(district, 'district', 'err-district', 'Please select your district.');
+        if (password.length < 8) {
+          setError('err-password', 'Password must be at least 8 characters.');
+          markField('password', true); valid = false;
+        }
+        if (password !== confirm) {
+          setError('err-confirmPassword', 'Passwords do not match.');
+          markField('confirmPassword', true); valid = false;
+        }
+
+        if (!valid) return;
+
+        setLoading('btn-step1', true);
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          currentUID = cred.user.uid;
+
+          // Update Firebase display name
+          await updateProfile(cred.user, { displayName: `${firstName} ${lastName}` });
+
+        // Save basic profile to Firestore
+await setDoc(doc(db, 'users', currentUID), {
+  firstName,
+  lastName,
+  email,
+  mobile,
+  dob,
+  nic,
+  district,
+  displayName: `${firstName} ${lastName}`, 
+  role: 'SME',                             
+  idType: 'NIC',
+  status: 'pending',
+  createdAt: serverTimestamp(),
+});
+
+          showToast('Account created! Upload your ID documents.');
+          setStep(2);
+        } catch (err) {
+          const msgs = {
+            'auth/email-already-in-use': 'This email is already registered. Please sign in.',
+            'auth/invalid-email':        'The email address is invalid.',
+            'auth/weak-password':        'Password is too weak. Use at least 8 characters.',
+            'auth/network-request-failed': 'Network error. Check your connection.',
+          };
+          showToast(msgs[err.code] || err.message, 'error');
+        } finally {
+          setLoading('btn-step1', false);
+        }
+      };
+
+      /* ═══════════════════════════════════════════════════════
+         STEP 2 — Upload NIC images to Cloudinary → Firestore
+      ═══════════════════════════════════════════════════════ */
+      window.handleStep2 = async function() {
+        const frontFile = document.getElementById('nicFrontFile').files[0];
+        const backFile  = document.getElementById('nicBackFile').files[0];
+
+        document.getElementById('err-nic-docs').style.display = 'none';
+        let valid = true;
+        if (!frontFile) { document.getElementById('nicFrontZone').classList.add('errored'); valid = false; }
+        if (!backFile)  { document.getElementById('nicBackZone').classList.add('errored');  valid = false; }
+        if (!valid) {
+          document.getElementById('err-nic-docs').style.display = 'block';
+          return;
+        }
+
+        if (!currentUID) {
+          showToast('Session expired. Please restart registration.', 'error');
+          setStep(1); return;
+        }
+
+        setLoading('btn-step2', true);
+        try {
+          const [frontUrl, backUrl] = await Promise.all([
+            uploadToCloudinary(frontFile),
+            uploadToCloudinary(backFile),
+          ]);
+
+          await setDoc(doc(db, 'users', currentUID), {
+            nicFrontUrl: frontUrl,
+            nicBackUrl:  backUrl,
+            idType: document.getElementById('idType').value,
+          }, { merge: true });
+
+          showToast('Documents uploaded successfully!');
+          setStep(3);
+        } catch (err) {
+          showToast('Upload failed: ' + err.message, 'error');
+        } finally {
+          setLoading('btn-step2', false);
+        }
+      };
+
+      /* ═══════════════════════════════════════════════════════
+         STEP 3 — Profile photo + optional info → Firestore
+      ═══════════════════════════════════════════════════════ */
+      window.handleStep3 = async function() {
+        const profileFile = document.getElementById('profileFile').files[0];
+        document.getElementById('err-profile').style.display = 'none';
+
+        if (!profileFile) {
+          document.getElementById('profileUploadZone').classList.add('errored');
+          document.getElementById('err-profile').style.display = 'block';
+          return;
+        }
+
+        if (!currentUID) {
+          showToast('Session expired. Please restart registration.', 'error');
+          setStep(1); return;
+        }
+
+        setLoading('btn-step3', true);
+        try {
+          const profileUrl = await uploadToCloudinary(profileFile);
+
+          const bio      = document.getElementById('bio').value.trim();
+          const linkedin = document.getElementById('linkedin').value.trim();
+          const website  = document.getElementById('website').value.trim();
+
+          await setDoc(doc(db, 'users', currentUID), {
+            profilePhotoUrl: profileUrl,
+            ...(bio      && { bio }),
+            ...(linkedin && { linkedin }),
+            ...(website  && { website }),
+            registrationCompletedAt: serverTimestamp(),
+          }, { merge: true });
+
+          // Update Firebase Auth photo URL
+          if (auth.currentUser) {
+            await updateProfile(auth.currentUser, { photoURL: profileUrl });
+          }
+
+          showToast('Registration complete! Welcome to SMEFund.lk 🎉');
+          setStep('success');
+        } catch (err) {
+          showToast('Failed to complete registration: ' + err.message, 'error');
+        } finally {
+          setLoading('btn-step3', false);
+        }
+      };
+
+      /* ─── Sign-in hint ────────────────────────────────────── */
+      window.showSignInHint = function() {
+        showToast('Please visit the login page to sign in.', 'success');
+      };
+
+    </script>
+  </body>
+</html>
