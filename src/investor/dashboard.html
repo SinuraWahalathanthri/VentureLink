@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMEFund.lk — Invest in Sri Lanka's Future</title>
+  <title>VentureLink — Invest in Sri Lanka's Future</title>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
@@ -1288,8 +1288,8 @@
   <!-- NAV -->
   <nav>
     <div class="nav-logo" onclick="window.location.href='../../index.html'">
-      <div class="nav-logo-icon">S</div>
-      <span class="nav-logo-text">SMEFund<span>.lk</span></span>
+      <div class="nav-logo-icon">V</div>
+      <span class="nav-logo-text">Venture<span>Link</span></span>
     </div>
     <div class="nav-links">
       <a href="../../index.html">Discover</a>
@@ -1363,7 +1363,7 @@
       <div id="editForm">
         <div style="margin-bottom:15px;">
           <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Investment Amount (LKR)</label>
-          <input type="number" id="editAmount" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:'Outfit',sans-serif;">
+          <input type="number" step="any" id="editAmount" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:'Outfit',sans-serif;">
         </div>
         <div style="margin-bottom:20px;">
           <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Message</label>
@@ -1382,10 +1382,27 @@
     </div>
   </div>
 
+  <div id="toast" class="toast"></div>
+
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+  <!-- Environment Decoupled Firebase Initialization -->
+  <script>
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "%VITE_FIREBASE_API_KEY%",
+        authDomain: "%VITE_FIREBASE_AUTH_DOMAIN%",
+        projectId: "%VITE_FIREBASE_PROJECT_ID%",
+        storageBucket: "%VITE_FIREBASE_STORAGE_BUCKET%",
+        messagingSenderId: "%VITE_FIREBASE_MESSAGING_SENDER_ID%",
+        appId: "%VITE_FIREBASE_APP_ID%"
+      });
+    }
+    window.db = firebase.firestore();
+  </script>
 
   <script src="dashboard.js"></script>
 </body>

@@ -1,14 +1,6 @@
 // ── FIREBASE INITIALIZATION ──
-firebase.initializeApp({
-  apiKey: "AIzaSyAYp96VglG4XroleSiPhmBNxD1TsO66XvE",
-  authDomain: "venturelink-8374b.firebaseapp.com",
-  projectId: "venturelink-8374b",
-  storageBucket: "venturelink-8374b.firebasestorage.app",
-  messagingSenderId: "1007831383423",
-  appId: "1:1007831383423:web:369ee42965552687cc6e4a"
-});
-
-const db = firebase.firestore();
+// Deferring to initialized state passed from root document environment variables
+const db = window.db || firebase.firestore();
 
 // ── AUTH CHECK ──
 let currentUser = null;
@@ -47,7 +39,7 @@ async function loadDashboard() {
     globalCommits = [];
     snapshot.forEach(doc => {
       let d = doc.data();
-      globalCommits.push({ id: doc.id, ...d });
+      globalCommits.push({ id: doc.id, ref: doc.ref, ...d });
       totalCommitted += d.investmentAmountLkr || 0;
     });
 
@@ -108,7 +100,9 @@ window.openEditModal = function(id) {
   document.getElementById('editForm').style.display = 'block';
   document.getElementById('deleteForm').style.display = 'none';
   
-  document.getElementById('editAmount').value = commit.investmentAmountLkr;
+  // Strip any forced Double floating padding for the frontend input display
+  let cleanAmount = Math.round(commit.investmentAmountLkr * 100) / 100;
+  document.getElementById('editAmount').value = cleanAmount;
   document.getElementById('editMessage').value = commit.message || '';
   
   document.getElementById('dashModalOverlay').style.display = 'flex';
@@ -134,14 +128,17 @@ window.closeDashModal = function() {
 document.getElementById('btnSaveEdit').addEventListener('click', async function() {
   if (!currentDashCommitment) return;
   let newAmount = parseFloat(document.getElementById('editAmount').value);
+  if (Number.isInteger(newAmount)) {
+    newAmount += 0.00000001; // Forces Firestore JS SDK to store as Double instead of Integer
+  }
   let newMessage = document.getElementById('editMessage').value.trim();
   
   if (!newAmount || newAmount <= 0) {
-    alert("Please enter a valid amount.");
+    showToast("⚠️ Please enter a valid amount.", true);
     return;
   }
   
-  let oldAmount = currentDashCommitment.investmentAmountLkr;
+  let oldAmount = currentDashCommitment.investmentAmountLkr || 0;
   let delta = newAmount - oldAmount;
   let btn = this;
   btn.disabled = true;
@@ -154,7 +151,7 @@ document.getElementById('btnSaveEdit').addEventListener('click', async function(
       let remaining = (camp.fundingGoalLkr - camp.committedLkr) + oldAmount;
       
       if (newAmount > remaining) {
-        alert("Cannot exceed goal. Max allowed is LKR " + remaining.toLocaleString());
+        showToast("⚠️ Cannot exceed goal. Max allowed is LKR " + remaining.toLocaleString(), true);
         btn.disabled = false;
         btn.textContent = 'Save Changes';
         return;
@@ -162,30 +159,31 @@ document.getElementById('btnSaveEdit').addEventListener('click', async function(
       
       let effectiveMin = Math.min(camp.minInvestmentLkr || 0, remaining);
       if (newAmount < effectiveMin) {
-        alert("Minimum investment is LKR " + effectiveMin.toLocaleString());
+        showToast("⚠️ Minimum investment is LKR " + effectiveMin.toLocaleString(), true);
         btn.disabled = false;
         btn.textContent = 'Save Changes';
         return;
       }
     }
 
-    await db.collection('campaigns').doc(currentDashCommitment.campaignId).collection('commitments').doc(currentDashCommitment.id).update({
+    await currentDashCommitment.ref.update({
       investmentAmountLkr: newAmount,
       message: newMessage,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     
     if (delta !== 0) {
-      await db.collection('campaigns').doc(currentDashCommitment.campaignId).update({
+      await currentDashCommitment.ref.parent.parent.update({
         committedLkr: firebase.firestore.FieldValue.increment(delta)
       });
     }
     
     closeDashModal();
     loadDashboard();
+    showToast('✅ Commitment updated successfully!');
   } catch (error) {
     console.error(error);
-    alert("Failed to update.");
+    showToast("❌ Failed to update. Please try again.", true);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Save Changes';
@@ -195,25 +193,39 @@ document.getElementById('btnSaveEdit').addEventListener('click', async function(
 document.getElementById('btnConfirmDelete').addEventListener('click', async function() {
   if (!currentDashCommitment) return;
   
-  let oldAmount = currentDashCommitment.investmentAmountLkr;
+  let oldAmount = currentDashCommitment.investmentAmountLkr || 0;
   let btn = this;
   btn.disabled = true;
   btn.textContent = 'Deleting...';
   
   try {
-    await db.collection('campaigns').doc(currentDashCommitment.campaignId).collection('commitments').doc(currentDashCommitment.id).delete();
+    await currentDashCommitment.ref.delete();
     
-    await db.collection('campaigns').doc(currentDashCommitment.campaignId).update({
+    await currentDashCommitment.ref.parent.parent.update({
       committedLkr: firebase.firestore.FieldValue.increment(-oldAmount)
     });
     
     closeDashModal();
     loadDashboard();
+    showToast('✅ Commitment successfully retracted.');
   } catch (error) {
     console.error(error);
-    alert("Failed to delete.");
+    showToast("❌ Failed to delete. Please try again.", true);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Delete';
   }
 });
+
+// ── UI HELPERS ──
+function showToast(message, isError = false) {
+  var toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.style.background = isError ? '#B91C1C' : 'var(--green-800)';
+  toast.classList.add('show');
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}

@@ -3,18 +3,9 @@
 // ═══════════════════════════════════════════════
 
 // ── FIREBASE INITIALIZATION ──
-firebase.initializeApp({
-  apiKey: "AIzaSyAYp96VglG4XroleSiPhmBNxD1TsO66XvE",
-  authDomain: "venturelink-8374b.firebaseapp.com",
-  projectId: "venturelink-8374b",
-  storageBucket: "venturelink-8374b.firebasestorage.app",
-  messagingSenderId: "1007831383423",
-  appId: "1:1007831383423:web:369ee42965552687cc6e4a",
-  measurementId: "G-SXSXS1CPZK"
-});
-
-const db = firebase.firestore();
-firebase.analytics();
+// Deferring to initialized state passed from root document environment variables
+const db = window.db || firebase.firestore();
+try { firebase.analytics(); } catch(e) {}
 
 // ── CONSTANTS ──
 const INDUSTRY_COLORS = {
@@ -164,10 +155,11 @@ function renderCards(data) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">No SMEs match your filters. Try adjusting your search.</div>';
     return;
   }
-  grid.innerHTML = data.map(function (s) {
+  grid.innerHTML = data.map(function (s, i) {
     var pct = s.goal > 0 ? Math.round((s.committed / s.goal) * 100) : 0;
     var stageCls = s.stage === 'Startup' ? 'stage-startup' : 'stage-established';
-    return '<div class="sme-card" onclick="openDetail(\'' + s.id + '\')">' +
+    var delay = (i % 3) * 0.1;
+    return '<div class="sme-card animate-on-scroll" style="transition-delay: ' + delay + 's" onclick="openDetail(\'' + s.id + '\')">' +
       '<div class="card-header">' +
       '<div class="card-header-bg" style="background:' + gradientForColor(s.color) + ';"></div>' +
       '<div class="card-header-overlay"></div>' +
@@ -342,7 +334,10 @@ async function openModal() {
       let existingDoc = snapshot.docs[0];
       currentCommitment = existingDoc;
       let data = existingDoc.data();
-      document.getElementById('commitAmount').value = data.investmentAmountLkr;
+      
+      // Clean forced floating point residue for UI clarity
+      let cleanAmount = Math.round((data.investmentAmountLkr || 0) * 100) / 100;
+      document.getElementById('commitAmount').value = cleanAmount;
       document.getElementById('commitMessage').value = data.message || '';
       document.getElementById('commitSubmitBtn').textContent = 'Update Commitment';
       document.querySelector('#modalOverlay .modal-title').textContent = 'Update Commitment';
@@ -430,6 +425,9 @@ function signOut() {
 async function submitCommit() {
   if (!currentUser) return;
   var amount = parseFloat(document.getElementById('commitAmount').value);
+  if (Number.isInteger(amount)) {
+    amount += 0.00000001; // Forces Firestore JS SDK to store as Double instead of Integer
+  }
   var message = document.getElementById('commitMessage').value.trim();
 
   if (!amount) {
@@ -530,5 +528,32 @@ document.getElementById('authModalOverlay')?.addEventListener('click', function 
   if (e.target === this) closeAuthModal();
 });
 
+// ── SCROLL ANIMATIONS ──
+function initScrollAnimations() {
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        scrollObserver.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: "0px 0px -50px 0px"
+  });
+
+  document.querySelectorAll('.animate-on-scroll:not(.is-visible)').forEach(el => {
+    scrollObserver.observe(el);
+  });
+}
+
 // ── INIT: Load campaigns from Firestore ──
-loadCampaigns();
+loadCampaigns().then(() => {
+  initScrollAnimations();
+});
+
+// Handle dynamically added content or navigation
+const domObserver = new MutationObserver(() => {
+  initScrollAnimations();
+});
+domObserver.observe(document.body, { childList: true, subtree: true });

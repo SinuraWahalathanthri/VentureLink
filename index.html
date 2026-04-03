@@ -4,11 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMEFund.lk — Invest in Sri Lanka's Future</title>
+  <title>VentureLink — Invest in Sri Lanka's Future</title>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet" />
   <style>
     :root {
       --green-50: #EAF3DE;
@@ -176,7 +177,7 @@
     .hero {
       min-height: 100vh;
       background: linear-gradient(135deg, rgba(23, 52, 4, 0.82) 0%, rgba(59, 109, 17, 0.7) 50%, rgba(99, 153, 34, 0.6) 100%),
-        url('https://images.unsplash.com/photo-1588416936097-41850ab3d86d?w=1600&q=80') center/cover no-repeat;
+        url('./public/hero-bg.png') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -378,18 +379,20 @@
     }
 
     .sme-card {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
       border-radius: var(--radius-card);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       overflow: hidden;
-      transition: transform 0.25s, box-shadow 0.25s;
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
       cursor: pointer;
+      position: relative;
     }
 
     .sme-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
+      transform: translateY(-8px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(99, 153, 34, 0.2);
     }
 
     .card-header {
@@ -453,6 +456,15 @@
       position: absolute;
       top: 110px;
       left: 16px;
+      opacity: 0;
+      transform: translateY(10px) scale(0.9);
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .sme-card:hover .card-owner-wrap {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
 
     .card-owner {
@@ -671,8 +683,7 @@
       background: white;
       border-radius: var(--radius-card);
       border: 1px solid var(--border);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-sm);
+      padding: 1.75rem;
     }
 
     .sidebar-card-title {
@@ -832,77 +843,83 @@
     }
 
     /* ── DETAIL CONTENT ── */
-    .detail-sections>*+* {
-      margin-top: 1.5rem;
-    }
-
-    .detail-section {
+    .detail-sections {
       background: white;
       border-radius: var(--radius-card);
       border: 1px solid var(--border);
-      padding: 1.75rem;
-      box-shadow: var(--shadow-sm);
+      padding: 0 2.5rem;
+    }
+
+    .detail-sections>*+* {
+      margin-top: 0;
+    }
+
+    .detail-section {
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-section:last-child {
+      border-bottom: none;
     }
 
     .ds-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 1.25rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      margin-bottom: 1.5rem;
     }
 
     .ds-icon {
-      width: 36px;
-      height: 36px;
-      background: var(--green-50);
-      border-radius: 10px;
+      color: var(--green-600);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 24px;
     }
 
     .ds-title {
-      font-size: 1.1rem;
-      color: var(--green-800);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: 'DM Serif Display', serif;
     }
 
     .ds-body {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-secondary);
-      line-height: 1.7;
+      line-height: 1.8;
     }
 
     .ds-body p+p {
-      margin-top: 0.75rem;
+      margin-top: 1rem;
     }
 
     .ds-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 24px;
     }
 
     .ds-metric {
-      background: var(--green-50);
-      border-radius: var(--radius-md);
-      padding: 14px;
+      border-left: 3px solid var(--green-400);
+      padding-left: 16px;
+      padding-top: 4px;
+      padding-bottom: 4px;
     }
 
     .ds-metric-label {
-      font-size: 11px;
+      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--green-600);
-      margin-bottom: 4px;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
     }
 
     .ds-metric-value {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
-      color: var(--green-800);
+      color: var(--text-primary);
     }
 
     .use-of-funds {
@@ -1281,6 +1298,155 @@
         transform: rotate(360deg);
       }
     }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: opacity, transform;
+    }
+
+    .animate-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── STATIC SECTIONS ── */
+    .static-section {
+      padding: 6rem 2rem;
+      background: white;
+    }
+
+    .static-section.alt {
+      background: #f9f9f7;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-intro-center {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    .section-intro-center .section-title {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      padding: 2.5rem;
+      background: white;
+      border-radius: var(--radius-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      border-color: var(--green-200);
+    }
+
+    .feature-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--green-50);
+      color: var(--green-600);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .feature-title {
+      font-size: 1.4rem;
+      color: var(--green-800);
+      margin-bottom: 1rem;
+      font-family: 'DM Serif Display', serif;
+    }
+
+    .feature-desc {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .how-it-works-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .step-item:hover {
+      transform: translateX(10px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+      border-color: var(--green-200);
+    }
+
+    .step-number {
+      width: 70px;
+      height: 70px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--green-400), var(--green-600));
+      color: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      font-family: 'DM Serif Display', serif;
+      box-shadow: 0 8px 20px rgba(59, 109, 17, 0.3);
+    }
+
+    .step-content h3 {
+      font-size: 1.4rem;
+      color: var(--green-800);
+      margin-bottom: 0.25rem;
+    }
+
+    .step-content p {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    @media(max-width: 768px) {
+      .step-item {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .step-item:hover {
+        transform: translateY(-5px);
+      }
+    }
   </style>
 </head>
 
@@ -1289,13 +1455,13 @@
   <!-- NAV -->
   <nav>
     <div class="nav-logo" onclick="goHome()">
-      <div class="nav-logo-icon">S</div>
-      <span class="nav-logo-text">SMEFund<span>.lk</span></span>
+      <div class="nav-logo-icon">V</div>
+      <span class="nav-logo-text">Venture<span>Link</span></span>
     </div>
     <div class="nav-links">
       <a onclick="goHome()">Discover</a>
-      <a>How It Works</a>
-      <a>For Investors</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#why-invest">Why VentureLink</a>
       <a>Register SME</a>
     </div>
     <div style="display:flex;gap:10px;" id="navAuthBtns">
@@ -1403,10 +1569,77 @@
       <div class="cards-grid" id="cardsGrid"></div>
     </div>
 
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" class="static-section">
+      <div class="container animate-on-scroll">
+        <div class="section-intro-center">
+          <h2 class="section-title">How It Works</h2>
+          <p class="section-sub">Start investing in high-growth potential businesses with our transparent, three-step
+            process.</p>
+        </div>
+        <div class="how-it-works-steps">
+          <div class="step-item animate-on-scroll">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Discover Verified Opportunities</h3>
+              <p>Browse our curated selection of Sri Lankan SMEs. Every business goes through a rigorous vetting process
+                to ensure they are transaction-ready and primed for growth.</p>
+            </div>
+          </div>
+          <div class="step-item animate-on-scroll" style="transition-delay: 0.1s;">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Express Your Interest</h3>
+              <p>Found a business you believe in? Submit a commitment of interest with your intended amount. Use our
+                built-in tools to calculate your potential equity stake.</p>
+            </div>
+          </div>
+          <div class="step-item animate-on-scroll" style="transition-delay: 0.2s;">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Connect and Grow</h3>
+              <p>The business owner will review your commitment and reach out directly to finalize the terms. Join their
+                journey and help scale the next big Sri Lankan success story.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY INVEST -->
+    <section id="why-invest" class="static-section alt">
+      <div class="container animate-on-scroll">
+        <div class="section-intro-center">
+          <h2 class="section-title">Why VentureLink?</h2>
+          <p class="section-sub">We bridge the gap between ambitious Sri Lankan entrepreneurs and global capital.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card animate-on-scroll">
+            <div class="feature-icon"><span class="material-symbols-outlined">insights</span></div>
+            <h3 class="feature-title">Data-Driven Insights</h3>
+            <p class="feature-desc">Access detailed financial records, growth metrics, and investor pitch decks to make
+              informed empirical decisions.</p>
+          </div>
+          <div class="feature-card animate-on-scroll" style="transition-delay: 0.1s;">
+            <div class="feature-icon"><span class="material-symbols-outlined">verified_user</span></div>
+            <h3 class="feature-title">Vetted Listings</h3>
+            <p class="feature-desc">Every business on our platform undergoes a robust verification process. We ensure
+              authenticity so you can invest with confidence.</p>
+          </div>
+          <div class="feature-card animate-on-scroll" style="transition-delay: 0.2s;">
+            <div class="feature-icon"><span class="material-symbols-outlined">handshake</span></div>
+            <h3 class="feature-title">Direct Connection</h3>
+            <p class="feature-desc">No middlemen, no hidden fees. Communicate and negotiate directly with founders to
+              structure the perfect deal.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer>
-      <div class="footer-logo">SMEFund.lk</div>
+      <div class="footer-logo">VentureLink</div>
       <p>Connecting Sri Lanka's entrepreneurs with visionary investors.</p>
-      <p style="margin-top:8px;font-size:11px;opacity:0.6;">© 2025 SMEFund.lk. All rights reserved. This platform does
+      <p style="margin-top:8px;font-size:11px;opacity:0.6;">© 2026 VentureLink. All rights reserved. This platform does
         not facilitate financial transactions.</p>
     </footer>
   </div>
@@ -1434,12 +1667,16 @@
       <div class="detail-sidebar">
         <!-- Investment Highlight -->
         <div class="sidebar-card invest-highlight">
-          <div class="sidebar-card-title"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;margin-right:4px;">monetization_on</span> Investment Opportunity</div>
+          <div class="sidebar-card-title"><span class="material-symbols-outlined"
+              style="font-size:16px;vertical-align:text-bottom;margin-right:4px;">monetization_on</span> Investment
+            Opportunity</div>
           <div class="amount" id="sdAmount"></div>
           <div class="equity" id="sdEquity"></div>
           <hr class="divider">
           <div style="text-align:left;">
-            <div class="sidebar-card-title"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;margin-right:4px;">analytics</span> Funding Progress</div>
+            <div class="sidebar-card-title"><span class="material-symbols-outlined"
+                style="font-size:16px;vertical-align:text-bottom;margin-right:4px;">analytics</span> Funding Progress
+            </div>
             <div class="fund-progress-pct" id="sdPct"></div>
             <div class="fund-progress-label" id="sdCommitted"></div>
             <div class="fund-progress-bar">
@@ -1451,9 +1688,11 @@
 
         <!-- Equity Calculator -->
         <div class="calc-card">
-          <div class="calc-title"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:text-bottom;margin-right:6px;">calculate</span> Equity Calculator</div>
+          <div class="calc-title"><span class="material-symbols-outlined"
+              style="font-size:20px;vertical-align:text-bottom;margin-right:6px;">calculate</span> Equity Calculator
+          </div>
           <div class="calc-input-label">Your Investment Amount (LKR)</div>
-          <input class="calc-input" type="number" id="calcInput" placeholder="e.g. 2,000,000" oninput="calcEquity()">
+          <input class="calc-input" type="number" step="any" id="calcInput" placeholder="e.g. 2,000,000" oninput="calcEquity()">
           <div class="calc-results" id="calcResults">
             <div class="calc-result-item">
               <div class="calc-result-label">Equity %</div>
@@ -1480,7 +1719,9 @@
         <!-- Disclaimer -->
         <div
           style="background:#fffbeb;border-radius:var(--radius-card);padding:1rem;border:1px solid #FDE68A;font-size:12px;color:#92400E;line-height:1.6;">
-          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;margin-right:4px;">warning</span> <strong>Disclaimer:</strong> This platform does not handle financial transactions. Commitments are
+          <span class="material-symbols-outlined"
+            style="font-size:16px;vertical-align:text-bottom;margin-right:4px;">warning</span>
+          <strong>Disclaimer:</strong> This platform does not handle financial transactions. Commitments are
           expressions of interest only. Please conduct your own due diligence before investing.
         </div>
       </div>
@@ -1493,10 +1734,10 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
       <h2 class="modal-title">Commit to Invest</h2>
       <p class="modal-sub">Amount and optional message.</p>
-      
+
       <div class="form-group">
         <label class="form-label">Investment Amount (LKR)</label>
-        <input class="form-input" type="number" id="commitAmount" placeholder="Minimum investment applies" required>
+        <input class="form-input" type="number" step="any" id="commitAmount" placeholder="Minimum investment applies" required>
       </div>
       <div class="form-group">
         <label class="form-label">Message (Optional)</label>
@@ -1505,8 +1746,10 @@
       </div>
       <button class="btn btn-primary" id="commitSubmitBtn" style="width:100%;padding:14px;font-size:15px;"
         onclick="submitCommit()">Submit Expression of Interest</button>
-      <div class="modal-disclaimer"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;margin-right:2px;">warning</span> This is not a financial transaction. By submitting, you confirm this is an
-        expression of interest only. SMEFund.lk does not process payments or guarantee returns.</div>
+      <div class="modal-disclaimer"><span class="material-symbols-outlined"
+          style="font-size:14px;vertical-align:text-bottom;margin-right:2px;">warning</span> This is not a financial
+        transaction. By submitting, you confirm this is an
+        expression of interest only. VentureLink does not process payments or guarantee returns.</div>
     </div>
   </div>
 
@@ -1516,7 +1759,7 @@
       <button class="modal-close" onclick="closeAuthModal()">✕</button>
       <h2 class="modal-title" id="authTitle">Sign Up</h2>
       <p class="modal-sub" id="authSub">Create an investor account to start committing.</p>
-      
+
       <div class="form-group" id="authNameGroup">
         <label class="form-label">Full Name</label>
         <input class="form-input" type="text" id="authName" placeholder="Your full name">
@@ -1535,24 +1778,41 @@
         <input class="form-input" type="password" id="authPassword" placeholder="••••••••" required>
       </div>
 
-      <button class="btn btn-primary" id="authSubmitBtn" style="width:100%;padding:14px;font-size:15px;margin-bottom:10px;"
-        onclick="submitAuth()">Create Account</button>
-      
+      <button class="btn btn-primary" id="authSubmitBtn"
+        style="width:100%;padding:14px;font-size:15px;margin-bottom:10px;" onclick="submitAuth()">Create
+        Account</button>
+
       <div style="text-align:center;font-size:13px;color:var(--text-secondary);">
         <span id="authSwitchText">Already have an account? </span>
-        <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--green-600);font-weight:600;" id="authSwitchBtn">Log In</a>
+        <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color:var(--green-600);font-weight:600;"
+          id="authSwitchBtn">Log In</a>
       </div>
     </div>
   </div>
 
   <!-- TOAST -->
-  <div class="toast" id="toast"><span class="material-symbols-outlined" style="vertical-align:bottom;font-size:18px;">check_circle</span> Your interest has been submitted! The owner will contact you.</div>
+  <div class="toast" id="toast"><span class="material-symbols-outlined"
+      style="vertical-align:bottom;font-size:18px;">check_circle</span> Your interest has been submitted! The owner will
+    contact you.</div>
 
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js"></script>
+
+  <!-- Environment Decoupled Firebase Initialization -->
+  <script>
+    firebase.initializeApp({
+      apiKey: "%VITE_FIREBASE_API_KEY%",
+      authDomain: "%VITE_FIREBASE_AUTH_DOMAIN%",
+      projectId: "%VITE_FIREBASE_PROJECT_ID%",
+      storageBucket: "%VITE_FIREBASE_STORAGE_BUCKET%",
+      messagingSenderId: "%VITE_FIREBASE_MESSAGING_SENDER_ID%",
+      appId: "%VITE_FIREBASE_APP_ID%"
+    });
+    window.db = firebase.firestore();
+  </script>
 
   <!-- App Logic (Firebase-integrated) -->
   <script src="app.js"></script>
