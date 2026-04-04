@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayHere Debug Mode</title>
+
+    <script src="https://www.payhere.lk/lib/payhere.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f9;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        button {
+            background: #eb5202;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Doorstep Package</h2>
+        <p>Amount: Rs.1500</p>
+
+        <button onclick="payNow()">Pay Now</button>
+    </div>
+
+    <script>
+        function payNow() {
+
+            var orderId = "ORDER_" + Math.floor(Math.random() * 1000000);
+            var amount = "1500.00";
+
+            console.log("==================================");
+            console.log("🚀 PAYMENT INITIATED");
+            console.log("Order ID:", orderId);
+            console.log("Amount:", amount);
+            console.log("==================================");
+
+            var request = new XMLHttpRequest();
+
+            request.onreadystatechange = function() {
+
+                if (request.readyState === 4) {
+
+                    console.log("📡 RESPONSE RECEIVED");
+                    console.log("Status:", request.status);
+                    console.log("Raw Response:", request.responseText);
+
+                    if (request.status === 200) {
+
+                        var obj = JSON.parse(request.responseText);
+
+                        console.log("==================================");
+                        console.log("🔐 BACKEND RESPONSE");
+                        console.log("Merchant ID:", obj.merchant_id);
+                        console.log("Hash:", obj.hash);
+                        console.log("==================================");
+
+                        payhere.onCompleted = function(orderId) {
+                            console.log("✅ PAYMENT COMPLETED");
+                            console.log("Order ID:", orderId);
+                            alert("Payment Completed: " + orderId);
+                        };
+
+                        payhere.onDismissed = function() {
+                            console.log("⚠️ PAYMENT CANCELLED BY USER");
+                            alert("Payment Cancelled");
+                        };
+
+                        payhere.onError = function(error) {
+                            console.log("❌ PAYMENT ERROR");
+                            console.log(error);
+                            alert("Error: " + error);
+                        };
+
+                        var payment = {
+                            sandbox: true,
+
+                            merchant_id: obj.merchant_id,
+                            return_url: "http://localhost/success.html",
+                            cancel_url: "http://localhost/cancel.html",
+                            notify_url: "http://localhost/notify.php",
+
+                            order_id: orderId,
+                            items: "Doorstep Package",
+
+                            amount: amount,
+                            currency: "LKR",
+
+                            hash: obj.hash,
+
+                            first_name: "Test",
+                            last_name: "User",
+                            email: "test@gmail.com",
+                            phone: "0771234567",
+
+                            address: "No 1, Main Street",
+                            city: "Colombo",
+                            country: "Sri Lanka"
+                        };
+
+                        console.log("==================================");
+                        console.log("📦 FINAL PAYMENT OBJECT");
+                        console.log(payment);
+                        console.log("==================================");
+
+                        console.log("🔑 HASH BEING SENT:", obj.hash);
+
+                        payhere.startPayment(payment);
+                    }
+                }
+            };
+
+            request.open(
+                "GET",
+                "http://localhost:8000/buyNowProcess.php?order_id=" + orderId + "&amount=" + amount,
+                true
+            );
+            request.send();
+        }
+    </script>
+
+</body>
+
+</html>

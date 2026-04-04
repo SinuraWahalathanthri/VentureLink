@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SMEFund.lk — Owner Portal</title>
+    <script src="https://www.payhere.lk/lib/payhere.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
@@ -2614,7 +2615,8 @@
                                     Viewing Investors For
                                 </div>
                                 <div class="inv-campaign-select-wrap">
-                                    <select class="inv-campaign-select" id="invCampaignFilter" onchange="renderInvestors()">
+                                    <select class="inv-campaign-select" id="invCampaignFilter"
+                                        onchange="renderInvestors()">
                                         <option value="all">All Campaigns</option>
                                     </select>
                                     <span class="inv-select-arrow">
@@ -2739,7 +2741,8 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Location (City) <span>*</span></label><input
-                                            class="form-input" type="text" id="cfCity" placeholder="e.g. Nuwara Eliya" />
+                                            class="form-input" type="text" id="cfCity"
+                                            placeholder="e.g. Nuwara Eliya" />
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">District <span>*</span></label><select
@@ -2776,7 +2779,8 @@
                                     </div>
                                     <div class="form-group cf-full">
                                         <label class="form-label">Problem & Solution</label><textarea class="form-input"
-                                            id="cfProblemSolution" placeholder="What problem does your business solve?"></textarea>
+                                            id="cfProblemSolution"
+                                            placeholder="What problem does your business solve?"></textarea>
                                     </div>
                                 </div>
                                 <div class="cf-actions">
@@ -2806,7 +2810,8 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Operating Expenses (LKR)</label><input
-                                            class="form-input" type="text" id="cfOpex" placeholder="Annual operating expenses" />
+                                            class="form-input" type="text" id="cfOpex"
+                                            placeholder="Annual operating expenses" />
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Number of Employees</label><input class="form-input"
@@ -2814,11 +2819,13 @@
                                     </div>
                                     <div class="form-group cf-full">
                                         <label class="form-label">Products & Services <span>*</span></label><textarea
-                                            class="form-input" id="cfProducts" placeholder="Describe what you sell..."></textarea>
+                                            class="form-input" id="cfProducts"
+                                            placeholder="Describe what you sell..."></textarea>
                                     </div>
                                     <div class="form-group cf-full">
                                         <label class="form-label">Growth Plan <span>*</span></label><textarea
-                                            class="form-input" id="cfGrowthPlan" placeholder="How will you grow the business?"></textarea>
+                                            class="form-input" id="cfGrowthPlan"
+                                            placeholder="How will you grow the business?"></textarea>
                                     </div>
                                 </div>
                                 <div class="cf-actions">
@@ -2848,7 +2855,8 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Minimum Investment (LKR) <span>*</span></label><input
-                                            class="form-input" type="number" id="cfMinInvestment" placeholder="e.g. 500000" />
+                                            class="form-input" type="number" id="cfMinInvestment"
+                                            placeholder="e.g. 500000" />
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Campaign Deadline <span>*</span></label><input
@@ -2890,16 +2898,18 @@
                                     <div class="funds-builder" id="fundsBuilder">
                                         <div class="fund-row">
                                             <input class="fund-row-input fund-category" type="text"
-                                                placeholder="e.g. Factory Expansion" /><input class="fund-row-input fund-percent"
-                                                type="number" placeholder="%" /><button class="fund-row-del"
+                                                placeholder="e.g. Factory Expansion" /><input
+                                                class="fund-row-input fund-percent" type="number"
+                                                placeholder="%" /><button class="fund-row-del"
                                                 onclick="delFundRow(this)">
                                                 ×
                                             </button>
                                         </div>
                                         <div class="fund-row">
                                             <input class="fund-row-input fund-category" type="text"
-                                                placeholder="e.g. Working Capital" /><input class="fund-row-input fund-percent"
-                                                type="number" placeholder="%" /><button class="fund-row-del"
+                                                placeholder="e.g. Working Capital" /><input
+                                                class="fund-row-input fund-percent" type="number"
+                                                placeholder="%" /><button class="fund-row-del"
                                                 onclick="delFundRow(this)">
                                                 ×
                                             </button>
@@ -3032,8 +3042,8 @@
                                 </div>
                                 <div class="cf-actions">
                                     <button class="btn btn-ghost" onclick="cfNext(3)">
-                                        ← Back</button><button class="btn btn-primary" id="cfSubmitBtn" style="padding: 12px 32px"
-                                        onclick="submitCampaign()">
+                                        ← Back</button><button class="btn btn-primary" id="cfSubmitBtn"
+                                        style="padding: 12px 32px" onclick="submitCampaign()">
                                         Submit for Review
                                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white"
                                             stroke-width="2">
@@ -3137,7 +3147,52 @@
         </main>
     </div>
 
-
+    <!-- ══ PAY TO PUBLISH (PayHere) ══ -->
+    <div class="modal-overlay" id="payModal">
+        <div class="modal-box" style="max-width: 440px">
+            <div class="modal-header">
+                <h3>Pay listing fee</h3>
+                <button class="modal-close" type="button" onclick="closeModal('payModal')">
+                    ×
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; color: var(--text2); line-height: 1.5; margin-bottom: 1rem">
+                    Publish <strong id="payModalCampaignName">—</strong> on SMEFund.lk with a one-time PayHere
+                    payment.
+                </p>
+                <div style="
+              background: var(--g50);
+              border-radius: var(--rmd);
+              padding: 1rem 1.25rem;
+              margin-bottom: 1.25rem;
+              font-size: 13px;
+              color: var(--g800);
+            ">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                        <span>Listing fee</span>
+                        <strong style="font-size: 1.1rem">LKR 1,500.00</strong>
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--text3); line-height: 1.5">
+                    You will complete payment in PayHere’s secure window. Your campaign is published only after
+                    PayHere confirms success.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="closeModal('payModal')">
+                    Cancel
+                </button>
+                <button class="btn btn-pay btn-sm" type="button" id="startPayHereBtn" onclick="startPayHereListingPayment()">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2" />
+                        <line x1="1" y1="10" x2="23" y2="10" />
+                    </svg>
+                    Pay with PayHere
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ══ INVOICE MODAL ══ -->
     <div class="modal-overlay" id="invoiceModal">
@@ -3169,10 +3224,10 @@
                             <div style="font-size: 14px; font-weight: 600; color: var(--text1)" id="invOwner">
                                 Kamal Perera
                             </div>
-                            <div style="font-size: 13px; color: var(--text3)">
+                            <div style="font-size: 13px; color: var(--text3)" id="invOwnerContact">
                                 kamal@hirufarrms.lk · +94 77 123 4567
                             </div>
-                            <div style="font-size: 13px; color: var(--text3)">
+                            <div style="font-size: 13px; color: var(--text3)" id="invOwnerLocation">
                                 Nuwara Eliya, Sri Lanka
                             </div>
                         </div>
@@ -3181,7 +3236,7 @@
                             <div style="font-size: 14px; font-weight: 600; color: var(--text1)" id="invBiz">
                                 Kandy Textile Hub
                             </div>
-                            <div style="font-size: 12px; color: var(--text3)">
+                            <div style="font-size: 12px; color: var(--text3)" id="invBizMeta">
                                 Manufacturing · Kandy, Sri Lanka
                             </div>
                         </div>
