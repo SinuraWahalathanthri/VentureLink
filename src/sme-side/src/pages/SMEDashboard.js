@@ -322,19 +322,31 @@ function updateImpliedValuation() {
   const equityEl = document.getElementById("cfEquity");
   const out = document.getElementById("impliedVal");
   const warningEl = document.getElementById("valuationWarning");
+  const minimumInvestmentEl = document.getElementById("cfMinInvestment");
 
   if (!goalEl || !equityEl || !out) return;
 
   const goal = parseFloat(goalEl.value);
   const equity = parseFloat(equityEl.value);
+  const minInvestment = minimumInvestmentEl ? parseFloat(minimumInvestmentEl.value) : 0;
 
   out.textContent = "—";
   if (warningEl) warningEl.textContent = "";
 
+  // 1. Basic validation for NaN or non-positive numbers
   if (isNaN(goal) || isNaN(equity) || goal <= 0 || equity <= 0) {
     return;
   }
 
+  // 2. Check if minimum investment exceeds the goal
+  if (!isNaN(minInvestment) && minInvestment > goal) {
+    if (warningEl) {
+      warningEl.textContent = "Minimum investment cannot be greater than the fund goal.";
+    }
+    return; // Stop calculation if this rule is violated
+  }
+
+  // 3. Equity logic
   if (equity > 100) {
     if (warningEl) warningEl.textContent = "Equity cannot exceed 100%";
     return;
@@ -344,6 +356,7 @@ function updateImpliedValuation() {
     warningEl.textContent = "Warning: High equity dilution detected.";
   }
 
+  // 4. Calculate and display valuation
   const valuation = goal / (equity / 100);
 
   out.textContent =
@@ -352,6 +365,7 @@ function updateImpliedValuation() {
       maximumFractionDigits: 0,
     });
 }
+
 // ─── Document uploads (4 docs) ──────────────────────────────────
 const docFiles = {
   registration: null,
@@ -769,14 +783,57 @@ export function openPayModal(campaignId) {
 
 window.openPayModal = openPayModal;
 
-function populateListingInvoiceModal(orderId, campaign) {
+function ownerDisplayNameForInvoice() {
   const p = currentUserProfile;
   const u = currentUser;
-  const ownerName =
+  return (
     [p?.firstName, p?.lastName].filter(Boolean).join(" ").trim() ||
     p?.displayName ||
     u?.email ||
-    "—";
+    ""
+  );
+}
+
+async function saveListingInvoiceRecord(orderId, campaign) {
+  const p = currentUserProfile;
+  const u = currentUser;
+  if (!u?.uid) return;
+
+  const name = ownerDisplayNameForInvoice() || "—";
+  const ownerEmail = u.email || p?.email || "";
+  const ownerMobile = p?.mobile || "";
+  const ownerLocation =
+    [campaign?.city, campaign?.district].filter(Boolean).join(", ") ||
+    "Sri Lanka";
+
+  await addDoc(collection(db, "invoice"), {
+    ownerId: u.uid,
+    name,
+    ownerEmail,
+    ownerMobile,
+    ownerLocation,
+    campaignId: campaign.id,
+    businessName: campaign?.businessName || "",
+    industry: campaign?.industry || "",
+    city: campaign?.city || "",
+    district: campaign?.district || "",
+    description: "SMEFund.lk Listing Fee",
+    items: "Doorstep Package",
+    paymentMethod: "PayHere (card / wallet)",
+    payHereOrderId: orderId,
+    invoiceNumber: orderId,
+    amountLkr: 1500,
+    amountDisplay: "LKR 1,500.00",
+    currency: "LKR",
+    type: "listing_fee",
+    createdAt: serverTimestamp(),
+  });
+}
+
+function populateListingInvoiceModal(orderId, campaign) {
+  const p = currentUserProfile;
+  const u = currentUser;
+  const ownerName = ownerDisplayNameForInvoice() || "—";
   const email = u?.email || p?.email || "—";
   const mobile = p?.mobile || "—";
   const loc =
@@ -862,16 +919,30 @@ async function applyPublishAfterPayHere(orderId) {
     { merge: true },
   );
 
+  let invoiceSaved = true;
+  let invoiceSaveError = "";
+  try {
+    await saveListingInvoiceRecord(orderId, merged);
+  } catch (e) {
+    invoiceSaved = false;
+    invoiceSaveError = e?.message || "Unknown error";
+    console.error("saveListingInvoiceRecord failed", e);
+  }
+
   populateListingInvoiceModal(orderId, merged);
   closeModal("payModal");
   openModal("invoiceModal");
-  showToast("Payment successful! Your campaign is now published.", "success");
+  if (invoiceSaved) {
+    showToast("Payment successful! Your campaign is now published.", "success");
+  } else {
+    showToast(
+      "Campaign published, but the invoice could not be saved: " +
+        invoiceSaveError,
+      "error",
+    );
+  }
 }
 
-/**
- * Same flow as PaymentGateway.html payNow(): XHR GET to buyNowProcess.php, then payhere.startPayment.
- * buyNowProcess.php is not modified; URLs and payment object shape match the gateway page.
- */
 export function startPayHereListingPayment() {
   if (!currentPayingCampaign || !currentUser) {
     showToast("Select a campaign to pay for.", "error");
@@ -1013,13 +1084,11 @@ export function startPayHereListingPayment() {
 
 window.startPayHereListingPayment = startPayHereListingPayment;
 
-// ─── Investors view (Firestor-backed, no static HTML data) ──────
 let investorsCache = [];
 
 function subscribeToInvestors() {
   if (!currentUser) return;
-  // You can change this schema – here we assume a top-level 'investors' collection
-  // with field 'ownerUid' or 'campaignOwnerUid'. Adjust if your schema is different.
+ 
   const q = query(
     collection(db, "investors"),
     where("ownerUid", "==", currentUser.uid),
@@ -1520,8 +1589,10 @@ function attachListenersOnce() {
 
   const goalEl = document.getElementById("cfGoal");
   const equityEl = document.getElementById("cfEquity");
+  const minInvEl = document.getElementById("cfMinInvestment");
   if (goalEl) goalEl.addEventListener("input", updateImpliedValuation);
   if (equityEl) equityEl.addEventListener("input", updateImpliedValuation);
+  if (minInvEl) minInvEl.addEventListener("input", updateImpliedValuation);
 
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
